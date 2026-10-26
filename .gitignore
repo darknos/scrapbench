@@ -1,0 +1,6 @@
+.build/
+build/
+.superpowers/
+.DS_Store
+*.xcodeproj
+.swiftpm/

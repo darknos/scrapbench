@@ -1,0 +1,45 @@
+# DailyNotes
+
+A macOS menu bar app for daily notes in a single plain-text file.
+Press the hotkey, a floating editor appears with a fresh timestamped
+separator, type, press `Esc` — saved and hidden.
+
+## Build
+
+Requires Xcode 27 / Swift 6. No `.xcodeproj`; it is a Swift Package.
+
+```sh
+make app          # builds build/DailyNotes.app (ad-hoc signed)
+make run          # builds and launches it
+make test         # unit tests for DailyNotesCore
+make sample       # generates build/sample-notes.md (~5 MB) for load testing
+cp -r build/DailyNotes.app /Applications
+```
+
+## Defaults
+
+| Setting | Default |
+|---|---|
+| Notes file | `~/Documents/daily-notes.md` |
+| Hotkey | `⌃⌥Space` |
+| Font | Menlo 14 |
+| Panel size | 720×480, remembered after resize |
+
+Backups: first open of each day copies the file to
+`~/Library/Application Support/DailyNotes/backups/`, newest 7 kept.
+Failed saves land in `~/Library/Application Support/DailyNotes/unsaved-*.md`.
+If the file changed on disk while the panel was open, your text is written
+to `<name>.conflict-<timestamp>.md` next to it instead.
+
+## Keys
+
+| Key | Action |
+|---|---|
+| `Esc`, click outside, hotkey | save and hide |
+| `⌘N` | new timestamped entry at the end |
+| `⌘F` | find |
+| `⌘,` | settings |
+
+Launching with `--open` shows the panel immediately (handy for testing).
+
+Design: `docs/superpowers/specs/2026-10-26-daily-notes-design.md`.

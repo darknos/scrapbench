@@ -1,0 +1,31 @@
+APP      = DailyNotes
+BUILD    = build
+BUNDLE   = $(BUILD)/$(APP).app
+BIN      = $(shell swift build -c release --show-bin-path)
+
+.PHONY: build app run test clean sample
+
+build:
+	swift build -c release --product DailyNotesApp
+
+test:
+	swift test
+
+app: build
+	rm -rf $(BUNDLE)
+	mkdir -p $(BUNDLE)/Contents/MacOS $(BUNDLE)/Contents/Resources
+	cp $(BIN)/DailyNotesApp $(BUNDLE)/Contents/MacOS/$(APP)
+	cp Resources/Info.plist $(BUNDLE)/Contents/Info.plist
+	# KeyboardShortcuts ships a resource bundle for its recorder UI
+	-cp -R $(BIN)/KeyboardShortcuts_KeyboardShortcuts.bundle $(BUNDLE)/Contents/Resources/ 2>/dev/null
+	codesign --force --sign - --deep $(BUNDLE)
+	@echo "built $(BUNDLE)"
+
+run: app
+	open $(BUNDLE)
+
+sample:
+	Scripts/make-sample.sh $(BUILD)/sample-notes.md
+
+clean:
+	rm -rf $(BUILD) .build
