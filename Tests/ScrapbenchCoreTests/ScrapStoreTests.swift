@@ -2,20 +2,20 @@ import Foundation
 import Testing
 @testable import ScrapbenchCore
 
-@Suite struct NoteStoreTests {
+@Suite struct ScrapStoreTests {
     let dir: URL
     let file: URL
     let support: URL
 
     init() throws {
-        dir = FileManager.default.temporaryDirectory.appendingPathComponent("NoteStoreTests-\(UUID().uuidString)")
+        dir = FileManager.default.temporaryDirectory.appendingPathComponent("ScrapStoreTests-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        file = dir.appendingPathComponent("daily-notes.md")
+        file = dir.appendingPathComponent("scraps.md")
         support = dir.appendingPathComponent("support")
     }
 
-    func store(now: @escaping () -> Date = Date.init) -> NoteStore {
-        NoteStore(fileURL: file, supportDirectory: support, now: now)
+    func store(now: @escaping () -> Date = Date.init) -> ScrapStore {
+        ScrapStore(fileURL: file, supportDirectory: support, now: now)
     }
 
     func listing(_ url: URL) throws -> [String] {
@@ -39,7 +39,7 @@ import Testing
     @Test func saveLeavesNoTempFiles() throws {
         let s = store()
         try s.save(text: "a\n", expecting: try s.load())
-        #expect(try listing(dir) == ["daily-notes.md"])
+        #expect(try listing(dir) == ["scraps.md"])
     }
 
     @Test func saveSucceedsWhenDiskMatchesSnapshot() throws {
@@ -54,12 +54,12 @@ import Testing
         let s = store()
         let snap = try s.save(text: "a\n", expecting: try s.load())
         try Data("changed\n".utf8).write(to: file)
-        #expect(throws: NoteStoreError.self) {
+        #expect(throws: ScrapStoreError.self) {
             try s.save(text: "a\nmine\n", expecting: snap)
         }
         let files = try listing(dir)
         #expect(files.count == 2)
-        let conflict = try #require(files.first { $0.hasPrefix("daily-notes.conflict-") && $0.hasSuffix(".md") })
+        let conflict = try #require(files.first { $0.hasPrefix("scraps.conflict-") && $0.hasSuffix(".md") })
         #expect(try String(contentsOf: dir.appendingPathComponent(conflict), encoding: .utf8) == "a\nmine\n")
         #expect(try String(contentsOf: file, encoding: .utf8) == "changed\n")
     }
@@ -76,9 +76,9 @@ import Testing
         let s = store(now: { now })
         try s.save(text: "a\n", expecting: try s.load())
         let first = try s.backupIfNeeded()
-        #expect(first?.lastPathComponent == "daily-notes-2026-10-26.md")
+        #expect(first?.lastPathComponent == "scraps-2026-10-26.md")
         #expect(try s.backupIfNeeded() == nil)
-        #expect(try listing(support.appendingPathComponent("backups")) == ["daily-notes-2026-10-26.md"])
+        #expect(try listing(support.appendingPathComponent("backups")) == ["scraps-2026-10-26.md"])
     }
 
     @Test func backupPrunesToSeven() throws {
@@ -88,8 +88,8 @@ import Testing
         }
         let files = try listing(support.appendingPathComponent("backups"))
         #expect(files.count == 7)
-        #expect(files.first == "daily-notes-2026-10-03.md")
-        #expect(files.last == "daily-notes-2026-10-09.md")
+        #expect(files.first == "scraps-2026-10-03.md")
+        #expect(files.last == "scraps-2026-10-09.md")
     }
 
     @Test func backupSkipsMissingFile() throws {
@@ -99,6 +99,6 @@ import Testing
 
     @Test func loadRejectsNonUTF8() throws {
         try Data([0xFF, 0xFE, 0x00, 0xD8]).write(to: file)
-        #expect(throws: NoteStoreError.self) { try store().load() }
+        #expect(throws: ScrapStoreError.self) { try store().load() }
     }
 }

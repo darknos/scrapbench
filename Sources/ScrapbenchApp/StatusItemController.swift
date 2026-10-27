@@ -4,9 +4,9 @@ final class StatusItemController {
     private let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
 
     init(open: Selector, settings: Selector, help: Selector, target: AnyObject) {
-        item.button?.image = NSImage(systemSymbolName: "note.text", accessibilityDescription: "Scrapbench")
+        item.button?.image = NSImage(systemSymbolName: "text.append", accessibilityDescription: "Scrapbench")
         let menu = NSMenu()
-        let openItem = menu.addItem(withTitle: "Open Notes", action: open, keyEquivalent: "")
+        let openItem = menu.addItem(withTitle: "Open Bench", action: open, keyEquivalent: "")
         openItem.target = target
         let settingsItem = menu.addItem(withTitle: "Settings…", action: settings, keyEquivalent: ",")
         settingsItem.target = target

@@ -21,44 +21,44 @@ func localDate(_ y: Int, _ mo: Int, _ d: Int, _ h: Int, _ mi: Int) -> Date {
     }
 }
 
-@Suite struct EntryRangeTests {
+@Suite struct ScrapRangeTests {
     let sep1 = Separator.make(date: localDate(2026, 10, 26, 14, 35))
     let sep2 = Separator.make(date: localDate(2026, 10, 26, 14, 40))
     var text: NSString { "head\n\(sep1)\nfoo\nbar\n\n\(sep2)\nbaz\n" as NSString }
 
     func range(of s: String) -> NSRange { text.range(of: s) }
 
-    @Test func middleEntryExcludesSeparatorsAndTrailingBlankLines() {
+    @Test func middleScrapExcludesSeparatorsAndTrailingBlankLines() {
         let inBar = range(of: "bar").location + 1
-        #expect(Separator.entry(containing: inBar, in: text) == range(of: "foo\nbar"))
+        #expect(Separator.scrap(containing: inBar, in: text) == range(of: "foo\nbar"))
     }
 
-    @Test func cursorOnSeparatorSelectsEntryBelow() {
+    @Test func cursorOnSeparatorSelectsScrapBelow() {
         let onSep = range(of: sep1).location + 5
-        #expect(Separator.entry(containing: onSep, in: text) == range(of: "foo\nbar"))
+        #expect(Separator.scrap(containing: onSep, in: text) == range(of: "foo\nbar"))
     }
 
-    @Test func lastEntryRunsToEndWithoutTrailingNewline() {
+    @Test func lastScrapRunsToEndWithoutTrailingNewline() {
         let inBaz = range(of: "baz").location
-        #expect(Separator.entry(containing: inBaz, in: text) == range(of: "baz"))
+        #expect(Separator.scrap(containing: inBaz, in: text) == range(of: "baz"))
     }
 
     @Test func textBeforeFirstSeparatorStartsAtZero() {
-        #expect(Separator.entry(containing: 2, in: text) == range(of: "head"))
+        #expect(Separator.scrap(containing: 2, in: text) == range(of: "head"))
     }
 
-    @Test func emptyEntryIsZeroLengthAfterSeparator() {
+    @Test func emptyScrapIsZeroLengthAfterSeparator() {
         let t = "x\n\(sep1)\n" as NSString
-        #expect(Separator.entry(containing: t.length, in: t) == NSRange(location: t.length, length: 0))
+        #expect(Separator.scrap(containing: t.length, in: t) == NSRange(location: t.length, length: 0))
     }
 
     @Test func textWithoutTrailingNewline() {
         let t = "x\n\(sep1)\ntyping" as NSString
-        #expect(Separator.entry(containing: t.length, in: t) == t.range(of: "typing"))
-        #expect(Separator.entry(containing: 0, in: t) == t.range(of: "x"))
+        #expect(Separator.scrap(containing: t.length, in: t) == t.range(of: "typing"))
+        #expect(Separator.scrap(containing: 0, in: t) == t.range(of: "x"))
     }
 
     @Test func cursorAtEndOfText() {
-        #expect(Separator.entry(containing: text.length, in: text) == range(of: "baz"))
+        #expect(Separator.scrap(containing: text.length, in: text) == range(of: "baz"))
     }
 }

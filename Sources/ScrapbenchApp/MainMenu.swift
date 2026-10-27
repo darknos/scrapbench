@@ -47,8 +47,8 @@ enum MainMenu {
 
         let helpItem = NSMenuItem()
         let helpMenu = NSMenu(title: "Help")
-        let helpEntry = helpMenu.addItem(withTitle: "Scrapbench Help", action: help, keyEquivalent: "?")
-        helpEntry.target = target
+        let helpCommand = helpMenu.addItem(withTitle: "Scrapbench Help", action: help, keyEquivalent: "?")
+        helpCommand.target = target
         helpItem.submenu = helpMenu
         main.addItem(helpItem)
         return main

@@ -12,7 +12,7 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
-            Section("Notes file") {
+            Section("Scrap file") {
                 HStack {
                     Text(settings.fileURL.path)
                         .truncationMode(.middle)
@@ -46,7 +46,7 @@ struct SettingsView: View {
 
     private func chooseFile() {
         let panel = NSSavePanel()
-        panel.title = "Choose notes file"
+        panel.title = "Choose scrap file"
         panel.message = "Pick an existing file or type a new name"
         panel.directoryURL = settings.fileURL.deletingLastPathComponent()
         panel.nameFieldStringValue = settings.fileURL.lastPathComponent

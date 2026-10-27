@@ -12,7 +12,7 @@ public struct Snapshot: Equatable, Sendable {
     }
 }
 
-public enum NoteStoreError: Error, LocalizedError {
+public enum ScrapStoreError: Error, LocalizedError {
     case unreadable(URL, underlying: Error)
     case notUTF8(URL)
     case writeFailed(URL, underlying: Error)
@@ -32,9 +32,9 @@ public enum NoteStoreError: Error, LocalizedError {
     }
 }
 
-/// File I/O for the single notes file: atomic saves with external-change
+/// File I/O for the single scrap file: atomic saves with external-change
 /// detection, rescue copies for failed saves and a rolling daily backup.
-public final class NoteStore {
+public final class ScrapStore {
     public static let backupsToKeep = 7
 
     public let fileURL: URL
@@ -50,7 +50,7 @@ public final class NoteStore {
 
     public func load() throws -> Snapshot {
         guard let data = try readData() else { return Snapshot(text: "", fingerprint: "") }
-        guard let text = String(data: data, encoding: .utf8) else { throw NoteStoreError.notUTF8(fileURL) }
+        guard let text = String(data: data, encoding: .utf8) else { throw ScrapStoreError.notUTF8(fileURL) }
         return Snapshot(text: text, fingerprint: Self.fingerprint(of: data))
     }
 
@@ -63,7 +63,7 @@ public final class NoteStore {
                 .deletingLastPathComponent()
                 .appendingPathComponent("\(baseName).conflict-\(timestamp()).md")
             try write(data, to: conflictURL)
-            throw NoteStoreError.externalChange(conflictURL: conflictURL)
+            throw ScrapStoreError.externalChange(conflictURL: conflictURL)
         }
         try write(data, to: fileURL)
         return Snapshot(text: text, fingerprint: Self.fingerprint(of: data))
@@ -77,7 +77,7 @@ public final class NoteStore {
         return url
     }
 
-    /// Copies the notes file to `backups/<name>-<yyyy-MM-dd>.md` once per
+    /// Copies the scrap file to `backups/<name>-<yyyy-MM-dd>.md` once per
     /// calendar day and keeps only the newest `backupsToKeep` copies.
     @discardableResult
     public func backupIfNeeded() throws -> URL? {
@@ -102,11 +102,11 @@ public final class NoteStore {
 
     private func readData() throws -> Data? {
         guard fm.fileExists(atPath: fileURL.path) else { return nil }
-        do { return try Data(contentsOf: fileURL) } catch { throw NoteStoreError.unreadable(fileURL, underlying: error) }
+        do { return try Data(contentsOf: fileURL) } catch { throw ScrapStoreError.unreadable(fileURL, underlying: error) }
     }
 
     private func write(_ data: Data, to url: URL) throws {
-        do { try data.write(to: url, options: .atomic) } catch { throw NoteStoreError.writeFailed(url, underlying: error) }
+        do { try data.write(to: url, options: .atomic) } catch { throw ScrapStoreError.writeFailed(url, underlying: error) }
     }
 
     private static func fingerprint(of data: Data) -> String {

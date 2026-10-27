@@ -16,9 +16,9 @@ make app                                    # release build → build/Scrapbench
 make app SIGN="Developer ID Application: …" # sign with a real identity (hardened runtime)
 make run                                    # build + open the app
 make test                                   # = swift test (ScrapbenchCore only)
-swift test --filter EntryFormatterTests                      # one suite
-swift test --filter EntryFormatterTests/openOnEmptyText      # one test
-make sample                                 # ~5 MB build/sample-notes.md for load testing
+swift test --filter ScrapFormatterTests                      # one suite
+swift test --filter ScrapFormatterTests/openOnEmptyText      # one test
+make sample                                 # ~5 MB build/sample-scraps.md for load testing
 ```
 
 Tests use Swift Testing (`@Test`, `#expect`), not XCTest. The app target has no tests; UI behaviour
@@ -28,7 +28,7 @@ is verified by running the app.
 
 - `build/Scrapbench.app/Contents/MacOS/Scrapbench --open` shows the panel immediately.
 - Always `pkill -x Scrapbench` before relaunching; two instances fight over the file and hotkey.
-- Point the app at a scratch file instead of the real notes with
+- Point the app at a scratch file instead of the real scrap file with
   `defaults write org.nosenko.Scrapbench filePath /path/to/file.md`; restore with
   `defaults delete org.nosenko.Scrapbench filePath`. Preferences live in that domain
   (file path, font, window frame, hotkey).
@@ -45,10 +45,10 @@ Two targets with different language modes (see `Package.swift`):
 - `ScrapbenchCore` (Swift 6 mode, pure Foundation, fully unit-tested): everything that can be
   reasoned about without AppKit.
   - `Separator` — the `--------------------< yyyy-MM-dd HH:mm >--------------------` line format.
-  - `EntryFormatter` — `open` / `newEntry` / `finalize`. It tracks only the separators *this
+  - `ScrapFormatter` — `open` / `newScrap` / `finalize`. It tracks only the separators *this
     session* appended; `finalize` strips those left empty and never touches older ones. The
     separator goes directly on the line after existing text (no blank line).
-  - `NoteStore` — load/save with a SHA-256 fingerprint; a save against a file that changed on
+  - `ScrapStore` — load/save with a SHA-256 fingerprint; a save against a file that changed on
     disk writes a `.conflict-*` file instead of overwriting; daily backups (7 kept); rescue copies
     on failed writes.
   - `Highlighting/` — `SyntaxHighlighter` returns `Token`s (UTF-16 `NSRange` + `TokenKind`) for a
@@ -62,7 +62,7 @@ Two targets with different language modes (see `Package.swift`):
   - `SessionController` owns the open → edit → close flow: loads the file, runs the formatter,
     shows the panel, autosaves 2 s after typing, flushes on focus loss and `⌘S`, finalizes and
     saves on close. All save errors surface in `BannerView` inside the panel.
-  - `NotePanel` is a non-activating floating `NSPanel`, so the previous app keeps its menu bar.
+  - `BenchPanel` is a non-activating floating `NSPanel`, so the previous app keeps its menu bar.
     Because of that, `MainMenu` builds a never-shown main menu purely so `⌘C/V/X/A/Z/F` reach the
     text view. `⌘N` and `⌘S` are handled in `EditorTextView.keyDown` by `keyCode` (45 and 1) so
     they work under non-Latin layouts. The panel overrides `close()` to route the title bar
@@ -94,3 +94,19 @@ Two targets with different language modes (see `Package.swift`):
 - `Resources/Info.plist` is copied verbatim into the bundle by the Makefile; `LSUIElement` keeps
   the app out of the Dock. Bundle id is `org.nosenko.Scrapbench`.
 - Highlighter grammars list comment and string rules first; earlier rules win on overlap.
+
+## Brand and naming
+
+`docs/brand.md` is the authority on name, vocabulary, voice and visual boundaries; read it
+before touching UI copy, README, icons or anything user-facing. The parts that affect code:
+
+- The name is `Scrapbench` — one word, capital S only. Never `ScrapBench`, never `SB`.
+- Vocabulary: *scrap* = one fragment between separators, *bench* = the panel, *tool* /
+  *transformer* = an action on selected text. Use these in UI strings and type names; do not
+  call the product or its scraps "notes" / "journal" in user-facing text.
+- Voice in UI copy, errors, README and release notes: short sentences, no exclamation marks,
+  state what happens and what does not.
+- Fully open source (MIT), no monetisation. Authorship is deliberate: author name,
+  `sergey@nosenko.org` and GitHub handle are spelled identically in README, About,
+  `CODEOWNERS`, SECURITY.md. Nothing that looks commercial (pricing, "Pro", waitlist).
+- Fonts are monospace everywhere in the app; emphasis is colour/weight only (see `Theme`).

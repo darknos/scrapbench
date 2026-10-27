@@ -3,7 +3,7 @@ import Foundation
 /// Appends timestamped separators for one editing session and removes the
 /// ones that were left empty when the session ends. Separators that were
 /// already in the file (previous sessions, or typed by hand) are never touched.
-public struct EntryFormatter {
+public struct ScrapFormatter {
     public var sessionSeparators: [String] = []
 
     public init() {}
@@ -13,9 +13,9 @@ public struct EntryFormatter {
         append(separator: Separator.make(date: date), to: text)
     }
 
-    /// Called on ⌘N. If the current session entry is still empty, only the
+    /// Called on ⌘N. If the current session scrap is still empty, only the
     /// timestamp is refreshed instead of stacking another separator.
-    public mutating func newEntry(text: String, date: Date) -> (text: String, cursor: Int) {
+    public mutating func newScrap(text: String, date: Date) -> (text: String, cursor: Int) {
         let separator = Separator.make(date: date)
         if let last = sessionSeparators.last,
            let tail = textAfterLast(separator: last, in: text),

@@ -1,5 +1,5 @@
 /// Shown in the help window through the regular editor, so every example
-/// below is highlighted exactly as it would be in the notes file.
+/// below is highlighted exactly as it would be in the scrap file.
 enum HelpText {
     static let markdown = """
     # Scrapbench Help
@@ -8,9 +8,9 @@ enum HelpText {
 
     - `⌃⌥Space` show or hide the panel (change it in Settings)
     - `Esc` save and hide; the window close button does the same
-    - `⌘N` new timestamped entry at the end
+    - `⌘N` new timestamped scrap at the end
     - `⌘S` save now (autosave runs 2 s after you stop typing)
-    - `⌘⌥A` select the current entry (text between separators)
+    - `⌘⌥A` select the current scrap (text between separators)
     - `⌘F` find, `⌘G` / `⇧⌘G` next / previous match
     - `⌘Z` / `⇧⌘Z` undo / redo
     - `⌘,` settings
@@ -26,7 +26,7 @@ enum HelpText {
     global shortcut in System Settings → Keyboard → Keyboard Shortcuts →
     Services.
 
-    ## Entries
+    ## Scraps
 
     Each time the panel opens, a separator with the current time is appended
     and the cursor goes below it:
@@ -63,7 +63,7 @@ enum HelpText {
 
     ## Files
 
-    Notes: ~/Documents/scrapbench.md, changeable in Settings.
+    File: ~/Documents/scrapbench.md, changeable in Settings.
     Backups: ~/Library/Application Support/Scrapbench/backups/, one per day, 7 kept.
     If the file changed on disk while the panel was open, your text is written
     to <name>.conflict-<timestamp>.md next to it instead of overwriting.

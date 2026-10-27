@@ -1,6 +1,6 @@
 import Foundation
 
-/// Markdown-lite highlighting for notes, with fenced code blocks delegated to `CodeGrammar`.
+/// Markdown-lite highlighting for scraps, with fenced code blocks delegated to `CodeGrammar`.
 public struct MarkdownHighlighter: SyntaxHighlighter {
     private typealias Rule = CodeGrammar.Rule
 

@@ -1,6 +1,6 @@
 import Foundation
 
-/// The timestamped line that opens every entry in the notes file.
+/// The timestamped line that opens every scrap in the scrap file.
 public enum Separator {
     public static let dashes = String(repeating: "-", count: 20)
 
@@ -26,11 +26,11 @@ public enum Separator {
         return lineRegex.firstMatch(in: String(line), range: NSRange(location: 0, length: s.length)) != nil
     }
 
-    /// The entry around `offset`: from the line after the previous separator
+    /// The scrap around `offset`: from the line after the previous separator
     /// (or the start of text) to the last non-blank line before the next
-    /// separator (or the end). A cursor on a separator line selects the entry
-    /// below it. Walks line by line, so cost is proportional to the entry, not the file.
-    public static func entry(containing offset: Int, in text: NSString) -> NSRange {
+    /// separator (or the end). A cursor on a separator line selects the scrap
+    /// below it. Walks line by line, so cost is proportional to the scrap, not the file.
+    public static func scrap(containing offset: Int, in text: NSString) -> NSRange {
         let length = text.length
         let offset = min(max(offset, 0), length)
         func line(at position: Int) -> (start: Int, end: Int, contentsEnd: Int) {
@@ -66,7 +66,7 @@ public enum Separator {
             position = l.end
         }
 
-        // Drop blank lines between the entry and the next separator.
+        // Drop blank lines between the scrap and the next separator.
         while end > start, text.character(at: end - 1) == 0x0A || text.character(at: end - 1) == 0x0D {
             end -= 1
         }

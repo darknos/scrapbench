@@ -27,7 +27,7 @@ run: app
 	open $(BUNDLE)
 
 sample:
-	Scripts/make-sample.sh $(BUILD)/sample-notes.md
+	Scripts/make-sample.sh $(BUILD)/sample-scraps.md
 
 clean:
 	rm -rf $(BUILD) .build

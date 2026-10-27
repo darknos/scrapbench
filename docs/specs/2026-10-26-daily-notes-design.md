@@ -5,7 +5,7 @@ Status: approved in conversation, implementation in progress
 
 ## Purpose
 
-A macOS-only menu bar app for jotting daily notes into a single plain-text
+A macOS-only menu bar app for working text scraps in a single plain-text
 file. The whole workflow is: global hotkey → panel appears with a fresh
 timestamped separator → type → `Esc` saves and hides. Success criterion:
 under a second from hotkey to typing, and typed text is never lost.
@@ -18,7 +18,7 @@ The file is ordinary Markdown-ish text, so it stays greppable and syncable
 In:
 - Menu bar agent app (no Dock icon), Spotlight-style floating panel.
 - Global hotkey (default `⌃⌥Space`, configurable) and "Open" menu item.
-- Single notes file, default `~/Documents/scrapbench.md`, path configurable.
+- Single scrap file, default `~/Documents/scrapbench.md`, path configurable.
 - Timestamped separator appended on open and on `⌘N`; empty session
   separators are removed on close.
 - Syntax highlighting: Markdown-lite + fenced code blocks for
@@ -28,7 +28,7 @@ In:
   detection, daily backups.
 - Settings window: file path, hotkey, launch at login, font and size.
 - macOS service "Take to Scrapbench": selected text in any app lands at the
-  end of the file on its own line (`EntryFormatter.append(chunk:to:)`),
+  end of the file on its own line (`ScrapFormatter.append(chunk:to:)`),
   opening the panel first if it is hidden. Users can give the service a
   global shortcut in System Settings → Keyboard → Keyboard Shortcuts →
   Services.
@@ -42,7 +42,7 @@ Out (explicitly deferred):
 ## Approach
 
 Native AppKit, Swift Package (no `.xcodeproj`), regex-based highlighter.
-Chosen over tree-sitter (build complexity not justified for notes) and
+Chosen over tree-sitter (build complexity not justified for scraps) and
 WKWebView + CodeMirror (slower cold start, non-native focus/Esc behaviour).
 
 Single external dependency: `KeyboardShortcuts` (sindresorhus) for the
@@ -79,12 +79,12 @@ signs it ad-hoc. `make run` launches it. `swift test` runs the core tests.
 20 dashes, `< yyyy-MM-dd HH:mm >` in local time, 20 dashes. Provides
 `make(date:)` and a regex that recognises any separator line.
 
-**`EntryFormatter`** — pure functions over `String`:
+**`ScrapFormatter`** — pure functions over `String`:
 
 - `open(text:, date:) -> (text, cursor)`: ensures the text ends with `\n`
   (unless empty), appends the separator and `\n`. Cursor at end. Records the appended separator as belonging to this session.
-- `newEntry(text:, date:) -> (text, cursor)` (`⌘N`): if the current
-  session entry is empty (nothing but whitespace after the last session
+- `newScrap(text:, date:) -> (text, cursor)` (`⌘N`): if the current
+  session scrap is empty (nothing but whitespace after the last session
   separator), replaces that separator's timestamp instead of appending a
   new one. Otherwise appends like `open`. Always appends at end of file,
   regardless of cursor position.
@@ -96,7 +96,7 @@ signs it ad-hoc. `make run` launches it. `swift test` runs the core tests.
 The formatter is a value type holding the list of session separator
 strings; the app creates one per panel session.
 
-**`NoteStore`** — file I/O for a single URL:
+**`ScrapStore`** — file I/O for a single URL:
 
 - `load() throws -> Snapshot` where `Snapshot = (text, fingerprint)`.
   Missing file → empty text, no error. Fingerprint = SHA-256 of bytes.
@@ -109,9 +109,9 @@ strings; the app creates one per panel session.
   `~/Library/Application Support/Scrapbench/unsaved-<timestamp>.md`.
 - `backupIfNeeded(today:)`: on the first call of a calendar day copies the
   file to `~/Library/Application Support/Scrapbench/backups/
-  daily-notes-<yyyy-MM-dd>.md` and prunes to the newest 7.
+  <name>-<yyyy-MM-dd>.md` and prunes to the newest 7.
 
-Errors are typed (`NoteStoreError`) and carry a user-readable message.
+Errors are typed (`ScrapStoreError`) and carry a user-readable message.
 
 **`Highlighting`**:
 
@@ -145,15 +145,15 @@ protocol SyntaxHighlighter { func tokens(in text: String,
 - **`StatusItemController`**: menu bar icon, menu: Open, Settings…, Quit.
 - **`HotkeyController`**: `KeyboardShortcuts.Name.togglePanel`, toggles
   the panel.
-- **`NotePanel`**: `NSPanel` with `.nonactivatingPanel`, `.titled` hidden,
+- **`BenchPanel`**: `NSPanel` with `.nonactivatingPanel`, `.titled` hidden,
   `.resizable`, `.fullSizeContentView`, floating level, `hidesOnDeactivate`
-  off. `frameAutosaveName = "NotePanel"`. Default 720×480 centred.
+  off. `frameAutosaveName = "BenchPanel"`. Default 720×480 centred.
   Resigning key (click outside) keeps the panel up and flushes pending
   edits to disk.
 - **`EditorTextView`**: `NSTextView` (TextKit 2) subclass. Monospace font
   from settings. `cancelOperation(_:)` → close. `paste(_:)` →
-  `pasteAsPlainText`. `⌘N` → new entry. `⌘S` → save now. `⌘⌥A` → select the
-  current entry (`Separator.entry(containing:in:)`). `⌘`-click opens links. Spell
+  `pasteAsPlainText`. `⌘N` → new scrap. `⌘S` → save now. `⌘⌥A` → select the
+  current scrap (`Separator.scrap(containing:in:)`). `⌘`-click opens links. Spell
   check on, smart quotes/dashes/substitutions off.
 - **`HighlightCoordinator`**: observes `NSTextStorage` edits, computes the
   dirty paragraph range (whole block if a fence was touched), asks the
@@ -162,7 +162,7 @@ protocol SyntaxHighlighter { func tokens(in text: String,
   between run-loop iterations.
 - **`Theme`**: `TokenKind → (NSColor, font traits)` using dynamic colors.
 - **`SessionController`**: owns the flow:
-  - open: `backupIfNeeded`, `load`, `EntryFormatter.open`, show panel,
+  - open: `backupIfNeeded`, `load`, `ScrapFormatter.open`, show panel,
     scroll to end, start autosave timer (2 s debounce after each edit).
   - close: `finalize`, `save` if text ≠ loaded snapshot, hide panel. On
     save failure: keep panel open, show banner, `writeRescue`.
@@ -194,12 +194,12 @@ Principle: typed text is never lost.
 Unit tests (`swift test`, Swift Testing, written TDD-style) for
 `ScrapbenchCore`:
 
-- `EntryFormatter`: empty file; file without trailing newline; `open`
+- `ScrapFormatter`: empty file; file without trailing newline; `open`
   then `finalize` with no input removes the separator; with input keeps
-  it; `⌘N` on empty entry replaces timestamp; `⌘N` on non-empty entry
+  it; `⌘N` on empty scrap replaces timestamp; `⌘N` on non-empty scrap
   appends; `finalize` removes multiple trailing empty session separators
   but never older ones; edits above the separator survive `finalize`.
-- `NoteStore`: missing file loads empty; save then load round-trips;
+- `ScrapStore`: missing file loads empty; save then load round-trips;
   atomic write leaves no temp files; external change raises error and
   writes conflict file; backup created once per day and pruned to 7.
 - Highlighting: golden tests per grammar; `CodeBlockMap` with closed,
@@ -212,7 +212,7 @@ Manual checklist (UI, run after `make app`):
   to that app.
 - Clicking outside keeps the panel visible and saves pending edits.
 - `⌘C/V/X/A/Z/⇧⌘Z/⌘F` work with no visible app menu.
-- `⌘N` appends a separator; repeated `⌘N` on an empty entry only updates
+- `⌘N` appends a separator; repeated `⌘N` on an empty scrap only updates
   the time.
 - Resize the panel, hide, reopen: size and position preserved.
 - Launch at login toggle reflects in System Settings.

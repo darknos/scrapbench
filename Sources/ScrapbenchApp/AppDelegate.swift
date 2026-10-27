@@ -10,7 +10,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.mainMenu = MainMenu.build(settings: #selector(openSettings), help: #selector(openHelp), target: self)
         session = SessionController()
-        statusItem = StatusItemController(open: #selector(openNotes), settings: #selector(openSettings),
+        statusItem = StatusItemController(open: #selector(openBench), settings: #selector(openSettings),
                                           help: #selector(openHelp), target: self)
         hotkey = HotkeyController { [weak self] in self?.session.toggle() }
         NSApp.servicesProvider = self
@@ -31,7 +31,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return .terminateNow
     }
 
-    @objc func openNotes() { session.open() }
+    @objc func openBench() { session.open() }
 
     @objc func openHelp() {
         if helpWindow == nil { helpWindow = HelpWindowController() }

@@ -2,14 +2,14 @@ import AppKit
 import Combine
 import ScrapbenchCore
 
-/// Owns the open → edit → close flow of the panel for one notes file.
+/// Owns the open → edit → close flow of the panel for one scrap file.
 final class SessionController: NSObject, NSTextViewDelegate {
     static let autosaveDelay: TimeInterval = 2
 
-    private let panel = NotePanel()
+    private let panel = BenchPanel()
     private let settings = Settings.shared
-    private var store: NoteStore
-    private var formatter = EntryFormatter()
+    private var store: ScrapStore
+    private var formatter = ScrapFormatter()
     private var snapshot = Snapshot(text: "", fingerprint: "")
     private var autosave: Timer?
     private var saveBlocked = false
@@ -20,11 +20,11 @@ final class SessionController: NSObject, NSTextViewDelegate {
     private var text: String { editor.string }
 
     override init() {
-        store = NoteStore(fileURL: settings.fileURL, supportDirectory: Settings.supportDirectory)
+        store = ScrapStore(fileURL: settings.fileURL, supportDirectory: Settings.supportDirectory)
         super.init()
         editor.delegate = self
         editor.onEscape = { [weak self] in self?.close() }
-        editor.onNewEntry = { [weak self] in self?.newEntry() }
+        editor.onNewScrap = { [weak self] in self?.newScrap() }
         editor.onSave = { [weak self] in self?.saveNow(force: true) }
         panel.onClose = { [weak self] in self?.close() }
         panel.onFocusLost = { [weak self] in self?.saveNow() }
@@ -49,7 +49,7 @@ final class SessionController: NSObject, NSTextViewDelegate {
 
     func open() {
         guard !panel.isVisible else { return }
-        store = NoteStore(fileURL: settings.fileURL, supportDirectory: Settings.supportDirectory)
+        store = ScrapStore(fileURL: settings.fileURL, supportDirectory: Settings.supportDirectory)
         panel.title = settings.fileURL.lastPathComponent
         editor.font = settings.font
         saveBlocked = false
@@ -71,27 +71,27 @@ final class SessionController: NSObject, NSTextViewDelegate {
             return
         }
 
-        formatter = EntryFormatter()
+        formatter = ScrapFormatter()
         let opened = formatter.open(text: snapshot.text, date: Date())
         editor.load(opened.text)
         panel.show()
         editor.moveToEnd()
     }
 
-    func newEntry() {
+    func newScrap() {
         guard editor.isEditable else { return }
-        let result = formatter.newEntry(text: text, date: Date())
+        let result = formatter.newScrap(text: text, date: Date())
         editor.replaceTail(with: result.text)
         editor.revealEnd()
         scheduleAutosave()
     }
 
     /// Text handed over by the "Take to Scrapbench" service: lands at the end
-    /// of the file on its own line, in the entry this open created.
+    /// of the file on its own line, in the scrap this open created.
     func take(text: String) {
         if !panel.isVisible { open() } else { panel.show() }
         guard editor.isEditable else { return }
-        let result = EntryFormatter.append(chunk: text, to: self.text)
+        let result = ScrapFormatter.append(chunk: text, to: self.text)
         guard result != self.text else { return }
         editor.replaceTail(with: result)
         editor.revealEnd()
@@ -125,7 +125,7 @@ final class SessionController: NSObject, NSTextViewDelegate {
             snapshot = try store.save(text: content, expecting: snapshot)
             panel.banner.isHidden = true
             return true
-        } catch NoteStoreError.externalChange(let conflictURL) {
+        } catch ScrapStoreError.externalChange(let conflictURL) {
             saveBlocked = true
             panel.banner.show("File changed on disk. Your text is in \(conflictURL.lastPathComponent)",
                               buttonTitle: "Reveal") {

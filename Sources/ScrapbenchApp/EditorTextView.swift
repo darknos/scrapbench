@@ -6,7 +6,7 @@ final class EditorTextView: NSTextView {
     static let sidePadding: CGFloat = 40
 
     var onEscape: () -> Void = {}
-    var onNewEntry: () -> Void = {}
+    var onNewScrap: () -> Void = {}
     var onSave: () -> Void = {}
     private(set) var highlight: HighlightCoordinator!
     /// True from open until the first interaction: the end of the document is
@@ -79,7 +79,7 @@ final class EditorTextView: NSTextView {
     }
 
     /// `centresEnd` reserves half a view below the text so the document end
-    /// can sit at the centre on open (the notes panel); off for plain viewers.
+    /// can sit at the centre on open (the bench panel); off for plain viewers.
     static func make(centresEnd: Bool = true) -> (scroll: NSScrollView, editor: EditorTextView) {
         let scroll = NSScrollView()
         scroll.hasVerticalScroller = true
@@ -189,7 +189,7 @@ final class EditorTextView: NSTextView {
         let mods = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
         // keyCode 45 is "n" on every layout; charactersIgnoringModifiers is not under Cyrillic.
         if mods == .command, event.keyCode == 45 || event.charactersIgnoringModifiers == "n" {
-            onNewEntry()
+            onNewScrap()
             return
         }
         if mods == .command, event.keyCode == 1 || event.charactersIgnoringModifiers == "s" {
@@ -197,7 +197,7 @@ final class EditorTextView: NSTextView {
             return
         }
         if mods == [.command, .option], event.keyCode == 0 || event.charactersIgnoringModifiers == "a" {
-            selectEntry()
+            selectScrap()
             return
         }
         super.keyDown(with: event)
@@ -231,9 +231,9 @@ final class EditorTextView: NSTextView {
         didChangeText()
     }
 
-    /// Selects the entry (text between separators) around the cursor.
-    func selectEntry() {
-        let range = Separator.entry(containing: selectedRange().location, in: string as NSString)
+    /// Selects the scrap (text between separators) around the cursor.
+    func selectScrap() {
+        let range = Separator.scrap(containing: selectedRange().location, in: string as NSString)
         setSelectedRange(range)
         scrollRangeToVisible(NSRange(location: range.location, length: 0))
     }

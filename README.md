@@ -14,7 +14,7 @@ make app          # builds build/Scrapbench.app (ad-hoc signed)
 make app SIGN="Developer ID Application: Name (TEAMID)"   # sign with a real identity
 make run          # builds and launches it
 make test         # unit tests for ScrapbenchCore
-make sample       # generates build/sample-notes.md (~5 MB) for load testing
+make sample       # generates build/sample-scraps.md (~5 MB) for load testing
 cp -r build/Scrapbench.app /Applications
 ```
 
@@ -22,7 +22,7 @@ cp -r build/Scrapbench.app /Applications
 
 | Setting | Default |
 |---|---|
-| Notes file | `~/Documents/scrapbench.md` |
+| Scrap file | `~/Documents/scrapbench.md` |
 | Hotkey | `⌃⌥Space` |
 | Font | Menlo 14 |
 | Panel size | 720×480, remembered after resize |
@@ -39,9 +39,9 @@ to `<name>.conflict-<timestamp>.md` next to it instead.
 |---|---|
 | `Esc`, close button, hotkey | save and hide |
 | click outside | panel stays, pending edits are saved |
-| `⌘N` | new timestamped entry at the end |
+| `⌘N` | new timestamped scrap at the end |
 | `⌘S` | save now (autosave runs 2 s after typing anyway) |
-| `⌘⌥A` | select the current entry (text between separators) |
+| `⌘⌥A` | select the current scrap (text between separators) |
 | `⌘F` | find |
 | `⌘,` | settings |
 | `⌘?` | help (also in the menu bar menu) |

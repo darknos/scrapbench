@@ -2,7 +2,7 @@ import AppKit
 
 /// Spotlight-style floating panel. Non-activating, so the previously active
 /// app keeps its menu bar and gets focus back when the panel hides.
-final class NotePanel: NSPanel {
+final class BenchPanel: NSPanel {
     let editor: EditorTextView
     let banner = BannerView()
     var onClose: () -> Void = {}
@@ -43,8 +43,8 @@ final class NotePanel: NSPanel {
         banner.isHidden = true
         contentView = container
 
-        setFrameAutosaveName("NotePanel")
-        if !setFrameUsingName("NotePanel") { center() }
+        setFrameAutosaveName("BenchPanel")
+        if !setFrameUsingName("BenchPanel") { center() }
     }
 
     override var canBecomeKey: Bool { true }
