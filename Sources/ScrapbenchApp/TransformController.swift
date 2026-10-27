@@ -6,11 +6,20 @@ final class TransformController {
     private let editor: EditorTextView
     private let banner: BannerView
     private var lastID: String?
-    var openPalette: () -> Void = {}
+    private var palette: CommandPalette?
 
     init(editor: EditorTextView, banner: BannerView) {
         self.editor = editor
         self.banner = banner
+    }
+
+    func openPalette() {
+        guard palette == nil, let window = editor.window, let items = candidates() else { return }
+        let palette = CommandPalette(parent: window, items: items,
+                                     onPick: { [weak self] in self?.run($0) },
+                                     onClose: { [weak self] in self?.palette = nil })
+        self.palette = palette
+        palette.show()
     }
 
     /// Transformers that apply to the current target, or nil (with a banner) when there is none.

@@ -8,7 +8,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var helpWindow: HelpWindowController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        NSApp.mainMenu = MainMenu.build(settings: #selector(openSettings), help: #selector(openHelp), target: self)
+        NSApp.mainMenu = MainMenu.build(settings: #selector(openSettings), help: #selector(openHelp),
+                                        transform: #selector(openTransformPalette),
+                                        repeatTransform: #selector(repeatTransform), target: self)
         session = SessionController()
         statusItem = StatusItemController(open: #selector(openBench), settings: #selector(openSettings),
                                           help: #selector(openHelp), target: self)
@@ -32,6 +34,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc func openBench() { session.open() }
+
+    @objc func openTransformPalette() { session.transform.openPalette() }
+
+    @objc func repeatTransform() { session.transform.repeatLast() }
 
     @objc func openHelp() {
         if helpWindow == nil { helpWindow = HelpWindowController() }
