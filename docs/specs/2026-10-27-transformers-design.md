@@ -16,8 +16,8 @@ text.
 ## Target text
 
 1. If there is a non-empty selection, the target is the selection.
-2. Otherwise the target is the current entry: the text between separators
-   around the cursor, as `Separator.entry(containing:in:)` returns it (the
+2. Otherwise the target is the current scrap: the text between separators
+   around the cursor, as `Separator.scrap(containing:in:)` returns it (the
    same range `⌘⌥A` selects). The editor selects that range before applying,
    so the user sees what was transformed.
 3. If the target is empty, the palette does not open; the banner shows
@@ -132,18 +132,32 @@ docker run \
   -w /src node:20 npm test
 ```
 
-### Time (`.time`)
+### Time and numbers (`.time`)
 
 | id | name | canApply | apply |
 |---|---|---|---|
 | `time.epochIso` | Epoch ↔ ISO 8601 | trimmed text is 10 or 13 digits, or parses as ISO 8601 | digits → `2026-10-27T18:52:00Z` (13 digits keep `.mmm`); ISO → epoch seconds |
+| `calc.evaluate` | Calculate | every non-blank line is an arithmetic expression (see below) and at least one contains an operator | per line: `3+4` → `3+4 = 7`; a line that already has ` = <result>` gets the result recomputed |
+
+Calculate evaluates with the `Expression` package (nicklockwood/Expression,
+MIT, the second dependency after `KeyboardShortcuts`), wrapped in Core as
+`Calculator` so the transformer and its tests do not touch the library
+directly. Supported: decimal and hex numbers, `+ - * / %`, unary minus,
+parentheses, `^` registered as a custom power operator, and the library's
+`sqrt`, `abs`, `round`, `floor`, `ceil`, `min`, `max`, `pow`, `pi`. Results
+are `Double`; `Calculator` formats them: integers without a fraction, others
+with up to 10 significant digits and no trailing zeros (`10/4` → `2.5`,
+`1/3` → `0.3333333333`). Division by zero reports `division by zero`; syntax
+errors pass the library's message through. `canApply` is a successful parse
+of every non-blank line, which the library does without evaluating. No
+variables, no assignment, no units: that is a plugin's job.
 
 ## Palette (`ScrapbenchApp/CommandPalette.swift`)
 
 - `⌘K` in the editor (keyCode 40, so it works under any layout) resolves the
   target text, selects it, and opens the palette. `⌘K` is also in the hidden
   main menu and listed in Help.
-- The palette is a borderless child window of the notes panel, 480×360,
+- The palette is a borderless child window of the bench panel, 480×360,
   anchored at the top centre of the panel. A search field on top, a list
   below. Nothing else.
 - The list holds only transformers whose `canApply` is true for the target,
