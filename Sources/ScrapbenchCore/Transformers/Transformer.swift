@@ -6,6 +6,7 @@ public enum TransformerGroup: String, CaseIterable, Sendable {
     case lines = "Lines"
     case cli = "CLI"
     case time = "Time"
+    case math = "Math"
 }
 
 /// A pure text → text operation offered in the command palette.

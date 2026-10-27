@@ -28,7 +28,7 @@ public enum Calculator {
 public struct CalculateTransformer: Transformer {
     public let id = "calc.evaluate"
     public let name = "Calculate"
-    public let group = TransformerGroup.time
+    public let group = TransformerGroup.math
     private static let resultSuffix = try! NSRegularExpression(pattern: "\\s*=\\s*[^=]*$")
     private static let operators = CharacterSet(charactersIn: "+-*/%(")
     public init() {}

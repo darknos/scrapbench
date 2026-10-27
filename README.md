@@ -66,8 +66,9 @@ with fuzzy search; `Enter` replaces the text in one undo step. Built-ins:
   with space, Join lines with ", ", Split by comma, Split by whitespace.
 - **CLI**: Split command (one flag per line with ` \` continuations), Join
   command, Comment lines, Uncomment lines.
-- **Time**: Epoch ↔ ISO 8601; Calculate (`3+4` → `3+4 = 7`, one expression
-  per line, `+ - * / %`, `pow`, `sqrt`, `min`, `max`, `round`, `pi`).
+- **Time**: Epoch ↔ ISO 8601.
+- **Math**: Calculate (`3+4` → `3+4 = 7`, one expression per line,
+  `+ - * / %`, `pow`, `sqrt`, `min`, `max`, `round`, `pi`).
 
 A transformer that cannot handle the text reports why in the banner and
 leaves the text alone.

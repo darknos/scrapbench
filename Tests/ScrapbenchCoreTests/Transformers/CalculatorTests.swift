@@ -27,6 +27,11 @@ import Testing
         #expect(try t.apply("3+4 = 5\n\n2*2 = 4") == "3+4 = 7\n\n2*2 = 4")
     }
 
+    @Test func belongsToMathGroup() {
+        #expect(t.group == .math)
+        #expect(TransformerGroup.math.rawValue == "Math")
+    }
+
     @Test func applicability() {
         #expect(t.canApply(to: "3+4"))
         #expect(t.canApply(to: "3+4 = 7\n(1+2)*3"))

@@ -29,7 +29,7 @@ text.
 public protocol Transformer {
     var id: String { get }              // stable, e.g. "base64.decode"
     var name: String { get }            // palette label, e.g. "Base64 decode"
-    var group: TransformerGroup { get } // .case, .encoding, .lines, .cli, .time
+    var group: TransformerGroup { get } // .case, .encoding, .lines, .cli, .time, .math
     func canApply(to text: String) -> Bool
     func apply(_ text: String) throws -> String
 }
@@ -132,11 +132,16 @@ docker run \
   -w /src node:20 npm test
 ```
 
-### Time and numbers (`.time`)
+### Time (`.time`)
 
 | id | name | canApply | apply |
 |---|---|---|---|
 | `time.epochIso` | Epoch ↔ ISO 8601 | trimmed text is 10 or 13 digits, or parses as ISO 8601 | digits → `2026-10-27T18:52:00Z` (13 digits keep `.mmm`); ISO → epoch seconds |
+
+### Math (`.math`)
+
+| id | name | canApply | apply |
+|---|---|---|---|
 | `calc.evaluate` | Calculate | every non-blank line is an arithmetic expression (see below) and at least one contains an operator | per line: `3+4` → `3+4 = 7`; a line that already has ` = <result>` gets the result recomputed |
 
 Calculate evaluates with the `Expression` package (nicklockwood/Expression,

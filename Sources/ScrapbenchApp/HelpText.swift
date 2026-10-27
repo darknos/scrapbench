@@ -48,7 +48,8 @@ enum HelpText {
     - Lines: JSON pretty / minify, sort, unique, reverse, remove blank, trim,
       indent / dedent, join / split
     - CLI: split a command one flag per line, join it back, comment / uncomment
-    - Time: Epoch ↔ ISO 8601, Calculate (`3+4` → `3+4 = 7`)
+    - Time: Epoch ↔ ISO 8601
+    - Math: Calculate (`3+4` → `3+4 = 7`)
 
     ## Markdown
 
