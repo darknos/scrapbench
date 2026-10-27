@@ -17,13 +17,19 @@ public enum JSONFormatter {
     public static func validate(_ text: String) -> Bool { (try? minify(text)) != nil }
 }
 
+/// Iterative, with an explicit container stack: `canApply` runs this on the
+/// main thread for whatever is selected, and recursion overflowed the stack
+/// on a few thousand nested brackets.
 private struct Formatter {
+    private enum State { case value, element, afterValue }
+    private struct Container { let close: Unicode.Scalar; let isObject: Bool }
+
     private let scalars: [Unicode.Scalar]
     private let pretty: Bool
     private var index = 0
     private var line = 1
     private var column = 1
-    private var depth = 0
+    private var stack: [Container] = []
     private var out = ""
 
     init(_ text: String, pretty: Bool) {
@@ -33,10 +39,23 @@ private struct Formatter {
 
     mutating func run() throws -> String {
         skipWhitespace()
-        try value()
-        skipWhitespace()
-        if index < scalars.count { throw unexpected() }
-        return out
+        var state = State.value
+        while true {
+            switch state {
+            case .value:
+                state = try beginValue()
+            case .element:
+                try elementPrefix()
+                state = .value
+            case .afterValue:
+                if stack.isEmpty {
+                    skipWhitespace()
+                    if index < scalars.count { throw unexpected() }
+                    return out
+                }
+                state = try afterValue()
+            }
+        }
     }
 
     private var peek: Unicode.Scalar? { index < scalars.count ? scalars[index] : nil }
@@ -60,14 +79,23 @@ private struct Formatter {
     }
 
     private mutating func newline() {
-        if pretty { out += "\n" + String(repeating: "  ", count: depth) }
+        if pretty { out += "\n" + String(repeating: "  ", count: stack.count) }
     }
 
-    private mutating func value() throws {
+    /// Emits a scalar value, or opens a container and leaves its first element pending.
+    private mutating func beginValue() throws -> State {
         guard let s = peek else { throw unexpected() }
         switch s {
-        case "{": try container(open: "{", close: "}", isObject: true)
-        case "[": try container(open: "[", close: "]", isObject: false)
+        case "{", "[":
+            let close: Unicode.Scalar = s == "{" ? "}" : "]"
+            emit(s)
+            skipWhitespace()
+            if peek == close {
+                emit(close)
+                return .afterValue
+            }
+            stack.append(Container(close: close, isObject: s == "{"))
+            return .element
         case "\"": try string()
         case "t": try literal("true")
         case "f": try literal("false")
@@ -75,36 +103,37 @@ private struct Formatter {
         case "-", "0"..."9": try number()
         default: throw unexpected()
         }
+        return .afterValue
     }
 
-    private mutating func container(open: Unicode.Scalar, close: Unicode.Scalar, isObject: Bool) throws {
-        emit(open)
+    /// Indentation and, in objects, the `"key":` before the element's value.
+    private mutating func elementPrefix() throws {
+        newline()
         skipWhitespace()
-        if peek == close { emit(close); return }
-        depth += 1
-        while true {
-            newline()
+        if stack.last?.isObject == true {
+            guard peek == "\"" else { throw unexpected() }
+            try string()
             skipWhitespace()
-            if isObject {
-                guard peek == "\"" else { throw unexpected() }
-                try string()
-                skipWhitespace()
-                guard peek == ":" else { throw unexpected() }
-                emit(":")
-                if pretty { out += " " }
-                skipWhitespace()
-            }
-            try value()
+            guard peek == ":" else { throw unexpected() }
+            emit(":")
+            if pretty { out += " " }
             skipWhitespace()
-            if peek == "," { emit(","); continue }
-            if peek == close {
-                depth -= 1
-                newline()
-                emit(close)
-                return
-            }
-            throw unexpected()
         }
+    }
+
+    private mutating func afterValue() throws -> State {
+        skipWhitespace()
+        if peek == "," {
+            emit(",")
+            return .element
+        }
+        if let container = stack.last, peek == container.close {
+            stack.removeLast()
+            newline()
+            emit(container.close)
+            return .afterValue
+        }
+        throw unexpected()
     }
 
     private mutating func string() throws {

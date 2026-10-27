@@ -31,6 +31,13 @@ import Testing
         #expect(!JSONMinifyTransformer().canApply(to: "{"))
     }
 
+    @Test func deepNestingDoesNotOverflowTheStack() throws {
+        let deep = String(repeating: "[", count: 100_000) + String(repeating: "]", count: 100_000)
+        #expect(try JSONFormatter.minify(deep) == deep)
+        #expect(JSONPrettyTransformer().canApply(to: deep))
+        #expect(try JSONFormatter.pretty("[[{}]]") == "[\n  [\n    {}\n  ]\n]")
+    }
+
     @Test func canApplySkipsParseOverOneMegabyte() {
         let big = String(repeating: "x", count: transformerParseLimit + 1)
         #expect(JSONPrettyTransformer().canApply(to: big))

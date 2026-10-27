@@ -15,13 +15,24 @@ public struct Base64DecodeTransformer: Transformer {
     public let group = TransformerGroup.encoding
     public init() {}
 
-    public func canApply(to text: String) -> Bool { (try? apply(text)) != nil }
+    /// Short words such as "OK" or "The" are valid Base64 of a byte or two,
+    /// so the check also wants some length and no control characters in the result.
+    public func canApply(to text: String) -> Bool {
+        if text.utf8.count > transformerParseLimit { return true }
+        let compact = text.filter { !$0.isWhitespace }
+        guard compact.count >= 8, let decoded = try? Self.decode(compact) else { return false }
+        return !decoded.unicodeScalars.contains { $0.value < 0x20 && $0 != "\t" && $0 != "\n" && $0 != "\r" }
+    }
 
     public func apply(_ text: String) throws -> String {
-        var compact = text.filter { !$0.isWhitespace }
-        let remainder = compact.count % 4
-        if remainder != 0 { compact += String(repeating: "=", count: 4 - remainder) }
-        guard let data = Data(base64Encoded: compact) else { throw TransformError("not valid Base64") }
+        try Self.decode(text.filter { !$0.isWhitespace })
+    }
+
+    private static func decode(_ compact: String) throws -> String {
+        var padded = compact
+        let remainder = padded.count % 4
+        if remainder != 0 { padded += String(repeating: "=", count: 4 - remainder) }
+        guard let data = Data(base64Encoded: padded) else { throw TransformError("not valid Base64") }
         guard let string = String(data: data, encoding: .utf8) else {
             throw TransformError("decoded bytes are not UTF-8 text")
         }
@@ -78,7 +89,9 @@ public struct JSONUnescapeTransformer: Transformer {
     public let group = TransformerGroup.encoding
     public init() {}
 
-    public func canApply(to text: String) -> Bool { (try? apply(text)) != nil }
+    public func canApply(to text: String) -> Bool {
+        text.utf8.count > transformerParseLimit || (try? apply(text)) != nil
+    }
 
     public func apply(_ text: String) throws -> String {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)

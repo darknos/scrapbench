@@ -16,7 +16,18 @@ import Testing
     @Test func decodeDoesNotApplyToPlainWords() {
         #expect(!Base64DecodeTransformer().canApply(to: "Hello world"))
         #expect(!Base64DecodeTransformer().canApply(to: "abcd"))
+        for word in ["Hi", "OK", "No", "The", "And", "Fix", "Idea", "   ", ""] {
+            #expect(!Base64DecodeTransformer().canApply(to: word), "\(word)")
+        }
+        #expect(!Base64DecodeTransformer().canApply(to: "AAAAAAAAAAAA"))   // decodes to NUL bytes
         #expect(Base64DecodeTransformer().canApply(to: "aGkgdGhlcmU="))
+        #expect(Base64DecodeTransformer().canApply(to: "bGluZTEKbGluZTIK"))  // "line1\nline2\n"
+    }
+
+    @Test func decodeSkipsCheckOverParseLimit() {
+        let big = String(repeating: "A", count: transformerParseLimit + 4)
+        #expect(Base64DecodeTransformer().canApply(to: big))
+        #expect(JSONUnescapeTransformer().canApply(to: "\"" + big + "\""))
     }
 
     @Test func urlEncodeDecode() throws {
