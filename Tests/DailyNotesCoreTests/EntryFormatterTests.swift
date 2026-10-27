@@ -18,12 +18,12 @@ import Testing
 
     @Test func openOnTextWithTrailingNewline() {
         var f = EntryFormatter()
-        #expect(f.open(text: "a\n", date: d1).text == "a\n\n\(sep1)\n")
+        #expect(f.open(text: "a\n", date: d1).text == "a\n\(sep1)\n")
     }
 
     @Test func openOnTextWithoutTrailingNewline() {
         var f = EntryFormatter()
-        #expect(f.open(text: "a", date: d1).text == "a\n\n\(sep1)\n")
+        #expect(f.open(text: "a", date: d1).text == "a\n\(sep1)\n")
     }
 
     @Test func finalizeRemovesEmptySessionSeparator() {
@@ -68,7 +68,7 @@ import Testing
         var f = EntryFormatter()
         let t1 = f.open(text: "a\n", date: d1).text
         let r = f.newEntry(text: t1, date: d2)
-        #expect(r.text == "a\n\n\(sep2)\n")
+        #expect(r.text == "a\n\(sep2)\n")
         #expect(!r.text.contains(sep1))
         #expect(f.sessionSeparators == [sep2])
         #expect(r.cursor == r.text.utf16.count)
@@ -78,7 +78,7 @@ import Testing
         var f = EntryFormatter()
         let t1 = f.open(text: "a\n", date: d1).text + "hi\n"
         let r = f.newEntry(text: t1, date: d2)
-        #expect(r.text == "a\n\n\(sep1)\nhi\n\n\(sep2)\n")
+        #expect(r.text == "a\n\(sep1)\nhi\n\(sep2)\n")
         #expect(r.cursor == r.text.utf16.count)
         #expect(f.sessionSeparators == [sep1, sep2])
     }
@@ -86,7 +86,7 @@ import Testing
     @Test func newEntryWithoutTrailingNewlineAppends() {
         var f = EntryFormatter()
         let t1 = f.open(text: "a\n", date: d1).text + "hi"
-        #expect(f.newEntry(text: t1, date: d2).text == "a\n\n\(sep1)\nhi\n\n\(sep2)\n")
+        #expect(f.newEntry(text: t1, date: d2).text == "a\n\(sep1)\nhi\n\(sep2)\n")
     }
 
     @Test func finalizeRemovesMultipleTrailingEmptySessionSeparators() {
@@ -96,8 +96,8 @@ import Testing
         // Simulate a separator that was appended by the session and then left empty, twice.
         let sep3 = Separator.make(date: localDate(2026, 10, 26, 15, 0))
         f.sessionSeparators.append(sep3)
-        t += "\n\(sep3)\n"
-        #expect(f.finalize(text: t) == "a\n\n\(sep1)\nhi\n")
+        t += "\(sep3)\n"
+        #expect(f.finalize(text: t) == "a\n\(sep1)\nhi\n")
     }
 
     @Test func finalizePreservesEditsAbove() {

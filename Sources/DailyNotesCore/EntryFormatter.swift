@@ -43,10 +43,7 @@ public struct EntryFormatter {
 
     private mutating func append(separator: String, to text: String) -> (text: String, cursor: Int) {
         var result = text
-        if !result.isEmpty {
-            if !result.hasSuffix("\n") { result += "\n" }
-            result += "\n"
-        }
+        if !result.isEmpty, !result.hasSuffix("\n") { result += "\n" }
         result += separator + "\n"
         sessionSeparators.append(separator)
         return (result, result.utf16.count)

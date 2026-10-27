@@ -22,5 +22,12 @@ public struct Token: Equatable, Sendable {
 
 public protocol SyntaxHighlighter {
     /// Tokens intersecting `range`. Tokens may extend beyond the range.
-    func tokens(in text: NSString, range: NSRange) -> [Token]
+    /// `codeBlocks` is the caller-maintained fence map for `text`.
+    func tokens(in text: NSString, range: NSRange, codeBlocks: CodeBlockMap) -> [Token]
+}
+
+public extension SyntaxHighlighter {
+    func tokens(in text: NSString, range: NSRange) -> [Token] {
+        tokens(in: text, range: range, codeBlocks: CodeBlockMap(text: text))
+    }
 }

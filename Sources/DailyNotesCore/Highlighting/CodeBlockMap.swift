@@ -1,6 +1,13 @@
 import Foundation
 
 public struct CodeBlock: Equatable, Sendable {
+    public init(fenceOpen: NSRange, body: NSRange, fenceClose: NSRange?, language: String?) {
+        self.fenceOpen = fenceOpen
+        self.body = body
+        self.fenceClose = fenceClose
+        self.language = language
+    }
+
     /// The opening fence line, without its line terminator.
     public let fenceOpen: NSRange
     /// Everything between the fences, line terminators included; extends to end of text when unclosed.
@@ -20,6 +27,10 @@ public struct CodeBlock: Equatable, Sendable {
 public struct CodeBlockMap: Sendable {
     public let blocks: [CodeBlock]
 
+    private init(blocks: [CodeBlock]) {
+        self.blocks = blocks
+    }
+
     public init(text: NSString) {
         var blocks: [CodeBlock] = []
         var open: (fence: NSRange, language: String?)?
@@ -31,8 +42,9 @@ public struct CodeBlockMap: Sendable {
             text.getLineStart(&lineStart, end: &lineEnd, contentsEnd: &contentsEnd,
                               for: NSRange(location: index, length: 0))
             let content = NSRange(location: lineStart, length: contentsEnd - lineStart)
-            let line = text.substring(with: content)
-            if line.hasPrefix("```") {
+            if content.length >= 3, text.character(at: lineStart) == 0x60,
+               text.character(at: lineStart + 1) == 0x60, text.character(at: lineStart + 2) == 0x60 {
+                let line = text.substring(with: content)
                 if let o = open {
                     blocks.append(CodeBlock(
                         fenceOpen: o.fence,
@@ -59,11 +71,54 @@ public struct CodeBlockMap: Sendable {
     }
 
     public func block(containing offset: Int) -> CodeBlock? {
-        blocks.first { NSLocationInRange(offset, $0.whole) }
+        let i = firstIndex(endingAfter: offset)
+        guard i < blocks.count, NSLocationInRange(offset, blocks[i].whole) else { return nil }
+        return blocks[i]
     }
 
-    /// Blocks overlapping `range`.
+    /// Blocks overlapping `range` (a zero-length range inside a block counts).
     public func blocks(intersecting range: NSRange) -> [CodeBlock] {
-        blocks.filter { NSIntersectionRange($0.whole, range).length > 0 || NSLocationInRange(range.location, $0.whole) }
+        var result: [CodeBlock] = []
+        var i = firstIndex(endingAfter: range.location)
+        while i < blocks.count, blocks[i].whole.location <= range.upperBound {
+            let b = blocks[i]
+            if NSIntersectionRange(b.whole, range).length > 0 || NSLocationInRange(range.location, b.whole) {
+                result.append(b)
+            }
+            i += 1
+        }
+        return result
+    }
+
+    /// Whether any fence line overlaps `range` (pre-edit coordinates).
+    public func fenceIntersects(_ range: NSRange) -> Bool {
+        blocks(intersecting: range).contains { b in
+            NSIntersectionRange(b.fenceOpen, range).length > 0 || NSLocationInRange(range.location, b.fenceOpen)
+                || b.fenceClose.map { NSIntersectionRange($0, range).length > 0 || NSLocationInRange(range.location, $0) } == true
+        }
+    }
+
+    /// The same map after an edit that did not touch any fence: ranges at or
+    /// after `location` move by `delta`.
+    public func shifted(after location: Int, by delta: Int) -> CodeBlockMap {
+        guard delta != 0 else { return self }
+        func move(_ r: NSRange) -> NSRange {
+            if r.location >= location { return NSRange(location: r.location + delta, length: r.length) }
+            if r.upperBound > location { return NSRange(location: r.location, length: r.length + delta) }
+            return r
+        }
+        return CodeBlockMap(blocks: blocks.map {
+            CodeBlock(fenceOpen: move($0.fenceOpen), body: move($0.body), fenceClose: $0.fenceClose.map(move), language: $0.language)
+        })
+    }
+
+    /// Index of the first block whose end is after `offset` (blocks are sorted and disjoint).
+    private func firstIndex(endingAfter offset: Int) -> Int {
+        var lo = 0, hi = blocks.count
+        while lo < hi {
+            let mid = (lo + hi) / 2
+            if blocks[mid].whole.upperBound <= offset { lo = mid + 1 } else { hi = mid }
+        }
+        return lo
     }
 }

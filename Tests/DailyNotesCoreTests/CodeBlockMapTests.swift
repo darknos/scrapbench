@@ -59,4 +59,37 @@ import Testing
         #expect(m.block(containing: 11) != nil)  // body
         #expect(m.block(containing: 17) == nil)  // "b"
     }
+
+    @Test func shiftedMovesBlocksAfterEdit() {
+        let text = "a\n```json\n{}\n```\nb\n"
+        let m = map(text).shifted(after: 1, by: 3)   // inserted "xyz" at offset 1
+        #expect(m.blocks[0].fenceOpen.location == 5)
+        #expect(m.blocks[0].fenceClose?.location == 16)
+    }
+
+    @Test func shiftedGrowsBlockWhenEditInsideBody() {
+        let text = "```json\n{}\n```\n"
+        let m = map(text).shifted(after: 9, by: 5)
+        #expect(m.blocks[0].body == NSRange(location: 8, length: 8))
+        #expect(m.blocks[0].fenceClose?.location == 16)
+    }
+
+    @Test func fenceIntersects() {
+        let text = "a\n```json\n{}\n```\nb\n"
+        let m = map(text)
+        #expect(m.fenceIntersects(NSRange(location: 3, length: 0)))
+        #expect(!m.fenceIntersects(NSRange(location: 11, length: 1)))
+        #expect(m.fenceIntersects(NSRange(location: 14, length: 2)))
+    }
+
+    @Test func blocksIntersectingUsesBinarySearch() {
+        var text = ""
+        for i in 0..<500 { text += "```\n\(i)\n```\n" }
+        let m = map(text)
+        #expect(m.blocks.count == 500)
+        let last = m.blocks[499]
+        #expect(m.blocks(intersecting: NSRange(location: last.body.location, length: 1)).count == 1)
+        #expect(m.block(containing: last.body.location)?.whole == last.whole)
+        #expect(m.block(containing: (text as NSString).length) == nil)
+    }
 }

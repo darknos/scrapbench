@@ -5,20 +5,39 @@ final class EditorTextView: NSTextView {
     var onEscape: () -> Void = {}
     var onNewEntry: () -> Void = {}
     private(set) var highlight: HighlightCoordinator!
-    var extraBottomSpace: CGFloat = 0 {
-        didSet { if extraBottomSpace != oldValue { setFrameSize(frame.size) } }
+    /// True from open until the first interaction: the end of the document is
+    /// kept centred through layout changes that happen after the first show.
+    private var anchorsEnd = false
+
+    /// Auto-scroll that treats the bottom inset as usable space, so typing
+    /// flows down to the real bottom edge instead of stopping at the middle.
+    override func scrollToVisible(_ rect: NSRect) -> Bool {
+        guard let scroll = enclosingScrollView else { return super.scrollToVisible(rect) }
+        let clip = scroll.contentView
+        let visible = clip.bounds
+        var origin = visible.origin
+        if rect.maxY > visible.maxY {
+            origin.y = rect.maxY - visible.height
+        } else if rect.minY < visible.minY {
+            origin.y = rect.minY
+        } else {
+            return false
+        }
+        clip.scroll(to: clip.constrainBoundsRect(NSRect(origin: origin, size: visible.size)).origin)
+        scroll.reflectScrolledClipView(clip)
+        return true
     }
 
-    override func setFrameSize(_ newSize: NSSize) {
-        // Grow the document past the text so the view can scroll beyond the last line.
-        let textHeight = (textLayoutManager?.usageBoundsForTextContainer.height ?? 0) + textContainerInset.height * 2
-        super.setFrameSize(NSSize(width: newSize.width, height: max(newSize.height, textHeight + extraBottomSpace)))
+    override func scrollRangeToVisible(_ range: NSRange) {
+        guard let window else { return super.scrollRangeToVisible(range) }
+        let rect = convert(window.convertFromScreen(firstRect(forCharacterRange: range, actualRange: nil)), from: nil)
+        _ = scrollToVisible(rect)
     }
 
     static func make() -> (scroll: NSScrollView, editor: EditorTextView) {
         let scroll = NSScrollView()
         scroll.hasVerticalScroller = true
-        scroll.autohidesScrollers = true
+        scroll.autohidesScrollers = false
         scroll.drawsBackground = true
         scroll.backgroundColor = .textBackgroundColor
 
@@ -50,29 +69,44 @@ final class EditorTextView: NSTextView {
         editor.highlight = HighlightCoordinator(storage: editor.textStorage!, highlighter: MarkdownHighlighter(),
                                                 theme: .default, baseFont: editor.font!)
         scroll.documentView = editor
-        // Blank space of half a view below the text lets the last line sit at the centre on open.
+        scroll.contentView.postsBoundsChangedNotifications = true
+        var clipWidth = scroll.contentView.bounds.width
+        NotificationCenter.default.addObserver(forName: NSView.boundsDidChangeNotification, object: scroll.contentView, queue: .main) { [weak editor] _ in
+            guard let editor else { return }
+            let width = scroll.contentView.bounds.width
+            if width != clipWidth {
+                clipWidth = width
+                // The scroller style (and so the text width) is only settled
+                // after the first display; everything reflows when it changes.
+                if editor.anchorsEnd { DispatchQueue.main.async { editor.centerEnd() }; return }
+            }
+            DispatchQueue.main.async { editor.highlightViewport() }
+        }
+        // A bottom inset of half a view lets the last line sit at the centre on open.
+        scroll.automaticallyAdjustsContentInsets = false
         scroll.postsFrameChangedNotifications = true
         NotificationCenter.default.addObserver(forName: NSView.frameDidChangeNotification, object: scroll, queue: .main) { _ in
-            editor.extraBottomSpace = scroll.contentView.bounds.height / 2
+            let inset = scroll.contentView.bounds.height / 2
+            scroll.contentInsets.bottom = inset
+            scroll.scrollerInsets.bottom = -inset   // keep the scroller full height
         }
         return (scroll, editor)
     }
 
     override func didChangeText() {
         super.didChangeText()
+        anchorsEnd = false
         needsDisplay = true
     }
 
-    /// Scrolls so the caret sits in the middle of the view.
-    private func centerCaret() {
-        guard let scroll = enclosingScrollView, let window else { return }
-        let caret = convert(window.convertFromScreen(firstRect(forCharacterRange: selectedRange(), actualRange: nil)), from: nil)
-        let clip = scroll.contentView
-        let visible = clip.bounds
-        var origin = visible.origin
-        origin.y += caret.midY - visible.midY
-        clip.scroll(to: clip.constrainBoundsRect(NSRect(origin: origin, size: visible.size)).origin)
-        scroll.reflectScrolledClipView(clip)
+    override func mouseDown(with event: NSEvent) {
+        anchorsEnd = false
+        super.mouseDown(with: event)
+    }
+
+    override func scrollWheel(with event: NSEvent) {
+        anchorsEnd = false
+        super.scrollWheel(with: event)
     }
 
     override func drawBackground(in rect: NSRect) {
@@ -107,8 +141,10 @@ final class EditorTextView: NSTextView {
     }
 
     override func keyDown(with event: NSEvent) {
+        anchorsEnd = false
         let mods = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
-        if mods == .command, event.charactersIgnoringModifiers == "n" {
+        // keyCode 45 is "n" on every layout; charactersIgnoringModifiers is not under Cyrillic.
+        if mods == .command, event.keyCode == 45 || event.charactersIgnoringModifiers == "n" {
             onNewEntry()
             return
         }
@@ -121,10 +157,33 @@ final class EditorTextView: NSTextView {
 
     /// Replaces the whole document and re-highlights it.
     func load(_ text: String) {
+        highlight.isLoading = true
         string = text
+        highlight.isLoading = false
         highlight.baseFont = font ?? Settings.shared.font
         highlight.highlightAll()
         undoManager?.removeAllActions()
+    }
+
+    /// Replaces only the part that differs from the current text, as one
+    /// undoable edit, so layout and highlighting above it stay valid.
+    func replaceTail(with text: String) {
+        let old = string as NSString
+        let new = text as NSString
+        let common = old.commonPrefix(with: text, options: .literal).utf16.count
+        let range = NSRange(location: common, length: old.length - common)
+        let replacement = new.substring(from: common)
+        guard range.length > 0 || !replacement.isEmpty,
+              shouldChangeText(in: range, replacementString: replacement) else { return }
+        textStorage?.replaceCharacters(in: range, with: replacement)
+        didChangeText()
+    }
+
+    /// Puts the cursor at the end and scrolls just enough to show it.
+    func revealEnd() {
+        let end = NSRange(location: textStorage?.length ?? 0, length: 0)
+        setSelectedRange(end)
+        scrollRangeToVisible(end)
     }
 
     func applyFont(_ newFont: NSFont) {
@@ -133,10 +192,58 @@ final class EditorTextView: NSTextView {
         highlight.highlightAll()
     }
 
+    /// Colours the visible region plus a margin; cheap when already done.
+    func highlightViewport() {
+        guard let layoutManager = textLayoutManager, let contentManager = layoutManager.textContentManager,
+              let viewport = layoutManager.textViewportLayoutController.viewportRange else { return }
+        let docStart = contentManager.documentRange.location
+        let start = contentManager.offset(from: docStart, to: viewport.location)
+        let length = contentManager.offset(from: viewport.location, to: viewport.endLocation)
+        let margin = 10_000
+        highlight.ensureHighlighted(NSRange(location: max(0, start - margin), length: length + 2 * margin))
+    }
+
     func moveToEnd() {
         let end = textStorage?.length ?? 0
         setSelectedRange(NSRange(location: end, length: 0))
-        scrollRangeToVisible(NSRange(location: end, length: 0))
-        centerCaret()
+        anchorsEnd = true
+        DispatchQueue.main.async { [weak self] in self?.centerEnd() }
+    }
+
+    /// Scrolls so the end of the document sits in the middle of the view.
+    /// TextKit 2 lays out lazily and estimates the height of everything else,
+    /// so the end keeps moving while the viewport around it settles; the
+    /// position is re-checked over a few run loop passes.
+    private func centerEnd(pass: Int = 0) {
+        guard let scroll = enclosingScrollView, let layoutManager = textLayoutManager,
+              let contentManager = layoutManager.textContentManager else { return }
+        let doc = layoutManager.documentRange
+        if pass == 0 {
+            let length = contentManager.offset(from: doc.location, to: doc.endLocation)
+            if let tailStart = contentManager.location(doc.endLocation, offsetBy: -min(4000, length)),
+               let tail = NSTextRange(location: tailStart, end: doc.endLocation) {
+                layoutManager.ensureLayout(for: tail)
+            }
+        }
+        layoutManager.textViewportLayoutController.layoutViewport()
+        var endY = layoutManager.usageBoundsForTextContainer.maxY
+        if let fragment = layoutManager.textLayoutFragment(for: doc.endLocation) {
+            endY = fragment.layoutFragmentFrame.maxY
+        }
+        endY += textContainerInset.height
+        let clip = scroll.contentView
+        let visible = clip.bounds
+        let target = endY - visible.height / 2
+        let moved = abs(visible.origin.y - target) > 0.5
+        if moved {
+            let origin = NSPoint(x: visible.origin.x, y: target)
+            clip.scroll(to: clip.constrainBoundsRect(NSRect(origin: origin, size: visible.size)).origin)
+            scroll.reflectScrolledClipView(clip)
+            layoutManager.textViewportLayoutController.layoutViewport()
+        }
+        highlightViewport()
+        needsDisplay = true
+        guard pass < 6, moved || pass < 2 else { return }
+        DispatchQueue.main.async { [weak self] in self?.centerEnd(pass: pass + 1) }
     }
 }

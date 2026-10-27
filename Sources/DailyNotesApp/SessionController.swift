@@ -72,8 +72,8 @@ final class SessionController: NSObject, NSTextViewDelegate {
     func newEntry() {
         guard editor.isEditable else { return }
         let result = formatter.newEntry(text: text, date: Date())
-        editor.load(result.text)
-        editor.moveToEnd()
+        editor.replaceTail(with: result.text)
+        editor.revealEnd()
         scheduleAutosave()
     }
 

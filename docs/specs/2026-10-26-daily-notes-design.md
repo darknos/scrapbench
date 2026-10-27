@@ -77,16 +77,15 @@ signs it ad-hoc. `make run` launches it. `swift test` runs the core tests.
 **`EntryFormatter`** — pure functions over `String`:
 
 - `open(text:, date:) -> (text, cursor)`: ensures the text ends with `\n`
-  (unless empty), appends a blank line, the separator and `\n`. Cursor at
-  end. Records the appended separator as belonging to this session.
+  (unless empty), appends the separator and `\n`. Cursor at end. Records the appended separator as belonging to this session.
 - `newEntry(text:, date:) -> (text, cursor)` (`⌘N`): if the current
   session entry is empty (nothing but whitespace after the last session
   separator), replaces that separator's timestamp instead of appending a
   new one. Otherwise appends like `open`. Always appends at end of file,
   regardless of cursor position.
 - `finalize(text:) -> String`: walks session separators from the end;
-  while the last one is followed only by whitespace, removes it together
-  with the blank line that was inserted before it. Separators from
+  while the last one is followed only by whitespace, removes it and any
+  trailing whitespace left behind. Separators from
   previous sessions are never touched. Edits above are preserved.
 
 The formatter is a value type holding the list of session separator

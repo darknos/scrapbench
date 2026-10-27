@@ -41,7 +41,7 @@ struct Theme {
         case .separatorDashes:
             return [.foregroundColor: faint]
         case .separatorDate:
-            return [.foregroundColor: accent, .font: bold(baseFont)]
+            return [.foregroundColor: faint, .font: bold(baseFont)]
         case .codeFence:
             return [.foregroundColor: muted]
         case .codeBlockBackground:

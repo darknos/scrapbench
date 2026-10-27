@@ -21,14 +21,13 @@ public struct MarkdownHighlighter: SyntaxHighlighter {
 
     public init() {}
 
-    public func tokens(in text: NSString, range: NSRange) -> [Token] {
-        let map = CodeBlockMap(text: text)
+    public func tokens(in text: NSString, range: NSRange, codeBlocks map: CodeBlockMap) -> [Token] {
         var tokens: [Token] = []
 
         // Markdown rules run on the gaps between code blocks that touch the requested range.
         var cursor = range.location
         let end = range.upperBound
-        for block in map.blocks where block.whole.upperBound > range.location && block.whole.location < end {
+        for block in map.blocks(intersecting: range) {
             if block.whole.location > cursor {
                 tokens += markdownTokens(in: text, range: NSRange(location: cursor, length: block.whole.location - cursor))
             }
