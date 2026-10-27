@@ -46,7 +46,7 @@ enum HelpText {
     - Case: UPPER, lower, Title, camelCase, snake_case, kebab-case, CONSTANT_CASE
     - Encoding: Base64, URL, JSON string escape, each way
     - Lines: JSON pretty / minify, sort, unique, reverse, remove blank, trim,
-      indent / dedent, join / split
+      indent / dedent, join / split, unwrap terminal hard wraps
     - CLI: split a command one flag per line, join it back, comment / uncomment
     - Time: Epoch ↔ ISO 8601
     - Math: Calculate (`3+4` → `3+4 = 7`)

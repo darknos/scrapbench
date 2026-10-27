@@ -98,6 +98,15 @@ style. Leading and trailing whitespace of the line is kept.
 | `lines.joinComma` | Join lines with ", " | more than one line | trim lines, join with `", "` |
 | `lines.splitComma` | Split by comma | contains `,` | split on `,`, trim parts, one per line |
 | `lines.splitSpace` | Split by whitespace | one line containing whitespace | split on whitespace runs, one per line |
+| `lines.unwrap` | Unwrap lines | the unwrap changes something | see below |
+
+Unwrap lines removes the hard wraps of text copied from a terminal (Claude
+Code output, man pages): a non-blank line that follows a non-blank line and
+does not start a block joins the previous line with one space; leading
+indentation is dropped; blank lines are kept but collapsed to one; lines
+starting a block (`- `, `* `, `+ `, `• `, `1. `, `1) `, `#`, `>`, `|`,
+`---`) start a new output line; headings and table rows never absorb the
+next line; fenced ``` blocks are copied verbatim.
 
 JSON pretty/minify use a token-level reformatter in Core, not
 `JSONSerialization`: it validates syntax and reports `unexpected token at

@@ -63,7 +63,9 @@ with fuzzy search; `Enter` replaces the text in one undo step. Built-ins:
 - **Lines**: JSON pretty / minify (key order and numbers kept as written),
   Sort lines, Sort lines unique, Reverse lines, Unique lines, Remove blank
   lines, Trim trailing whitespace, Trim each line, Indent, Dedent, Join lines
-  with space, Join lines with ", ", Split by comma, Split by whitespace.
+  with space, Join lines with ", ", Split by comma, Split by whitespace,
+  Unwrap lines (undo terminal hard wraps, keeping paragraphs, lists and code
+  blocks; made for pasting Claude Code output into Slack).
 - **CLI**: Split command (one flag per line with ` \` continuations), Join
   command, Comment lines, Uncomment lines.
 - **Time**: Epoch ↔ ISO 8601.

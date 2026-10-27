@@ -16,7 +16,7 @@ public enum TransformerRegistry {
         LineTransformer.removeBlank, LineTransformer.trimTrailing, LineTransformer.trim,
         LineTransformer.indent, LineTransformer.dedent,
         LineTransformer.joinSpace, LineTransformer.joinComma,
-        LineTransformer.splitComma, LineTransformer.splitSpace,
+        LineTransformer.splitComma, LineTransformer.splitSpace, UnwrapTransformer(),
 
         CLITransformers.split, CLITransformers.join, CLITransformers.comment, CLITransformers.uncomment,
 

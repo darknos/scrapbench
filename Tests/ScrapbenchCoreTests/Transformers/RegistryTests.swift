@@ -4,7 +4,8 @@ import Testing
 @Suite struct RegistryTests {
     @Test func allBuiltInsPresentOnceInSpecOrder() {
         let ids = TransformerRegistry.builtIn.map(\.id)
-        #expect(ids.count == 34)
+        #expect(ids.count == 35)
+        #expect(ids.firstIndex(of: "lines.unwrap")! < ids.firstIndex(of: "cli.split")!)
         #expect(Set(ids).count == ids.count)
         #expect(ids.first == "case.upper")
         #expect(ids.last == "calc.evaluate")
