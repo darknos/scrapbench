@@ -26,6 +26,53 @@ public enum Separator {
         return lineRegex.firstMatch(in: String(line), range: NSRange(location: 0, length: s.length)) != nil
     }
 
+    /// The entry around `offset`: from the line after the previous separator
+    /// (or the start of text) to the last non-blank line before the next
+    /// separator (or the end). A cursor on a separator line selects the entry
+    /// below it. Walks line by line, so cost is proportional to the entry, not the file.
+    public static func entry(containing offset: Int, in text: NSString) -> NSRange {
+        let length = text.length
+        let offset = min(max(offset, 0), length)
+        func line(at position: Int) -> (start: Int, end: Int, contentsEnd: Int) {
+            var start = 0, end = 0, contentsEnd = 0
+            text.getLineStart(&start, end: &end, contentsEnd: &contentsEnd,
+                              for: NSRange(location: min(position, length), length: 0))
+            return (start, end, contentsEnd)
+        }
+        func isSeparator(_ l: (start: Int, end: Int, contentsEnd: Int)) -> Bool {
+            isSeparatorLine(Substring(text.substring(with: NSRange(location: l.start, length: l.contentsEnd - l.start))))
+        }
+
+        let current = line(at: offset)
+        var start: Int
+        if isSeparator(current) {
+            start = current.end
+        } else {
+            start = 0
+            var probe = current
+            while probe.start > 0 {
+                probe = line(at: probe.start - 1)
+                if isSeparator(probe) { start = probe.end; break }
+            }
+        }
+
+        var end = length
+        var position = start
+        while position < length {
+            let l = line(at: position)
+            if isSeparator(l) { end = l.start; break }
+            // The last line of a text without a trailing newline ends at `length`.
+            if l.end <= position { break }
+            position = l.end
+        }
+
+        // Drop blank lines between the entry and the next separator.
+        while end > start, text.character(at: end - 1) == 0x0A || text.character(at: end - 1) == 0x0D {
+            end -= 1
+        }
+        return NSRange(location: start, length: end - start)
+    }
+
     /// Match of a separator line within `text`, split into dashes / date / dashes ranges (UTF-16).
     public static func matches(in text: NSString, range: NSRange) -> [(dashesLeft: NSRange, date: NSRange, dashesRight: NSRange)] {
         lineRegex.matches(in: text as String, options: [.withTransparentBounds], range: range).map {

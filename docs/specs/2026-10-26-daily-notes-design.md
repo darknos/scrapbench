@@ -144,7 +144,8 @@ protocol SyntaxHighlighter { func tokens(in text: String,
   edits to disk.
 - **`EditorTextView`**: `NSTextView` (TextKit 2) subclass. Monospace font
   from settings. `cancelOperation(_:)` → close. `paste(_:)` →
-  `pasteAsPlainText`. `⌘N` → new entry. `⌘S` → save now. `⌘`-click opens links. Spell
+  `pasteAsPlainText`. `⌘N` → new entry. `⌘S` → save now. `⌘⌥A` → select the
+  current entry (`Separator.entry(containing:in:)`). `⌘`-click opens links. Spell
   check on, smart quotes/dashes/substitutions off.
 - **`HighlightCoordinator`**: observes `NSTextStorage` edits, computes the
   dirty paragraph range (whole block if a fence was touched), asks the
