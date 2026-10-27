@@ -31,11 +31,33 @@ final class BannerView: NSView {
     required init?(coder: NSCoder) { fatalError() }
 
     func show(_ message: String, buttonTitle: String? = nil, action: (() -> Void)? = nil) {
+        flashTimer?.invalidate()
+        isFlash = false
         label.stringValue = message
         button.isHidden = buttonTitle == nil
         button.title = buttonTitle ?? ""
         onButton = action
         isHidden = false
+    }
+
+    private var flashTimer: Timer?
+    private var isFlash = false
+
+    /// A transient message: gone after 4 s or on the next key press. Save
+    /// banners shown with `show` are never dismissed this way.
+    func flash(_ message: String) {
+        show(message)
+        isFlash = true
+        flashTimer = Timer.scheduledTimer(withTimeInterval: 4, repeats: false) { [weak self] _ in
+            self?.dismissFlash()
+        }
+    }
+
+    func dismissFlash() {
+        guard isFlash else { return }
+        flashTimer?.invalidate()
+        isFlash = false
+        isHidden = true
     }
 
     @objc private func tapped() { onButton?() }

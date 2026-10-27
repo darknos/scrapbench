@@ -8,6 +8,9 @@ final class EditorTextView: NSTextView {
     var onEscape: () -> Void = {}
     var onNewScrap: () -> Void = {}
     var onSave: () -> Void = {}
+    var onKeyDown: () -> Void = {}
+    var onTransform: () -> Void = {}
+    var onRepeatTransform: () -> Void = {}
     private(set) var highlight: HighlightCoordinator!
     /// True from open until the first interaction: the end of the document is
     /// kept centred through layout changes that happen after the first show.
@@ -186,7 +189,12 @@ final class EditorTextView: NSTextView {
 
     override func keyDown(with event: NSEvent) {
         anchorsEnd = false
+        onKeyDown()
         let mods = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        if event.keyCode == 40 || event.charactersIgnoringModifiers == "k" {
+            if mods == .command { onTransform(); return }
+            if mods == [.command, .shift] { onRepeatTransform(); return }
+        }
         // keyCode 45 is "n" on every layout; charactersIgnoringModifiers is not under Cyrillic.
         if mods == .command, event.keyCode == 45 || event.charactersIgnoringModifiers == "n" {
             onNewScrap()
@@ -229,6 +237,28 @@ final class EditorTextView: NSTextView {
               shouldChangeText(in: range, replacementString: replacement) else { return }
         textStorage?.replaceCharacters(in: range, with: replacement)
         didChangeText()
+    }
+
+    /// The selection, or the current scrap selected in place; nil when
+    /// there is nothing to transform.
+    func transformTarget() -> (range: NSRange, text: String)? {
+        let storage = string as NSString
+        var range = selectedRange()
+        if range.length == 0 {
+            range = Separator.scrap(containing: range.location, in: storage)
+            guard range.length > 0 else { return nil }
+            setSelectedRange(range)
+        }
+        return (range, storage.substring(with: range))
+    }
+
+    /// One undoable replacement; the new text becomes the selection.
+    func replace(_ range: NSRange, with text: String) {
+        guard shouldChangeText(in: range, replacementString: text) else { return }
+        textStorage?.replaceCharacters(in: range, with: text)
+        didChangeText()
+        setSelectedRange(NSRange(location: range.location, length: (text as NSString).length))
+        scrollRangeToVisible(NSRange(location: range.location, length: 0))
     }
 
     /// Selects the scrap (text between separators) around the cursor.

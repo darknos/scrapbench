@@ -15,6 +15,7 @@ final class SessionController: NSObject, NSTextViewDelegate {
     private var saveBlocked = false
     private var closing = false
     private var fontObserver: AnyCancellable?
+    private(set) var transform: TransformController!
 
     private var editor: EditorTextView { panel.editor }
     private var text: String { editor.string }
@@ -22,10 +23,14 @@ final class SessionController: NSObject, NSTextViewDelegate {
     override init() {
         store = ScrapStore(fileURL: settings.fileURL, supportDirectory: Settings.supportDirectory)
         super.init()
+        transform = TransformController(editor: editor, banner: panel.banner)
         editor.delegate = self
         editor.onEscape = { [weak self] in self?.close() }
         editor.onNewScrap = { [weak self] in self?.newScrap() }
         editor.onSave = { [weak self] in self?.saveNow(force: true) }
+        editor.onKeyDown = { [weak self] in self?.panel.banner.dismissFlash() }
+        editor.onTransform = { [weak self] in self?.transform.openPalette() }
+        editor.onRepeatTransform = { [weak self] in self?.transform.repeatLast() }
         panel.onClose = { [weak self] in self?.close() }
         panel.onFocusLost = { [weak self] in self?.saveNow() }
         fontObserver = settings.$fontName.combineLatest(settings.$fontSize)
