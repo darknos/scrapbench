@@ -142,15 +142,17 @@ docker run \
 Calculate evaluates with the `Expression` package (nicklockwood/Expression,
 MIT, the second dependency after `KeyboardShortcuts`), wrapped in Core as
 `Calculator` so the transformer and its tests do not touch the library
-directly. Supported: decimal and hex numbers, `+ - * / %`, unary minus,
-parentheses, `^` registered as a custom power operator, and the library's
-`sqrt`, `abs`, `round`, `floor`, `ceil`, `min`, `max`, `pow`, `pi`. Results
-are `Double`; `Calculator` formats them: integers without a fraction, others
-with up to 10 significant digits and no trailing zeros (`10/4` → `2.5`,
-`1/3` → `0.3333333333`). Division by zero reports `division by zero`; syntax
-errors pass the library's message through. `canApply` is a successful parse
-of every non-blank line, which the library does without evaluating. No
-variables, no assignment, no units: that is a plugin's job.
+directly. Supported: decimal numbers, `+ - * / %`, unary minus, parentheses,
+and the library's `sqrt`, `abs`, `round`, `floor`, `ceil`, `min`, `max`,
+`pow`, `pi`. There is no `^`: the library cannot give a custom operator
+power precedence, so `pow(x, y)` is the way. Results are `Double`;
+`Calculator` formats them: integers without a fraction, others with up to
+10 significant digits and no trailing zeros (`10/4` → `2.5`, `1/3` →
+`0.3333333333`). An infinite result reports `division by zero`, NaN reports
+`not a number`; syntax errors pass the library's message through.
+`canApply` evaluates every non-blank line and succeeds (evaluation is pure
+and cheap). Blank lines are kept as they are. No variables, no assignment,
+no units: that is a plugin's job.
 
 ## Palette (`ScrapbenchApp/CommandPalette.swift`)
 
