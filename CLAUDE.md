@@ -51,6 +51,12 @@ Two targets with different language modes (see `Package.swift`):
   - `ScrapStore` — load/save with a SHA-256 fingerprint; a save against a file that changed on
     disk writes a `.conflict-*` file instead of overwriting; daily backups (7 kept); rescue copies
     on failed writes.
+  - `Transformers/` — `Transformer` protocol (`canApply` is cheap and never throws; `apply` throws
+    `TransformError` with a short lower-case message), `TransformerRegistry.builtIn` in palette
+    order, `FuzzyMatcher` for the palette. Line-based transformers go through `Lines`, which owns
+    the trailing-newline and CRLF rules. `Calculator` wraps the `Expression` package (the only
+    dependency of Core); JSON pretty/minify is a token-level reformatter so key order survives.
+    Spec: `docs/superpowers/specs/2026-10-27-transformers-design.md`.
   - `Highlighting/` — `SyntaxHighlighter` returns `Token`s (UTF-16 `NSRange` + `TokenKind`) for a
     range. `MarkdownHighlighter` runs Markdown-lite rules outside fenced blocks and delegates
     fenced blocks to a `CodeGrammar` picked by language (`Grammars/`). `CodeBlockMap` locates
@@ -62,6 +68,11 @@ Two targets with different language modes (see `Package.swift`):
   - `SessionController` owns the open → edit → close flow: loads the file, runs the formatter,
     shows the panel, autosaves 2 s after typing, flushes on focus loss and `⌘S`, finalizes and
     saves on close. All save errors surface in `BannerView` inside the panel.
+  - `TransformController` resolves the target (selection, else the current scrap, selected in
+    place), applies a transformer through `EditorTextView.replace` (one undo step) and reports
+    `TransformError` with `BannerView.flash` (auto-hides, unlike save banners). `CommandPalette`
+    is a borderless non-activating child panel; it closes on `resignKey`, so anything that
+    steals key focus (including a person pressing keys elsewhere) dismisses it.
   - `BenchPanel` is a non-activating floating `NSPanel`, so the previous app keeps its menu bar.
     Because of that, `MainMenu` builds a never-shown main menu purely so `⌘C/V/X/A/Z/F` reach the
     text view. `⌘N` and `⌘S` are handled in `EditorTextView.keyDown` by `keyCode` (45 and 1) so

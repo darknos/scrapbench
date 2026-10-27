@@ -11,6 +11,8 @@ enum HelpText {
     - `⌘N` new timestamped scrap at the end
     - `⌘S` save now (autosave runs 2 s after you stop typing)
     - `⌘⌥A` select the current scrap (text between separators)
+    - `⌘K` transform the selection or the current scrap
+    - `⌘⇧K` repeat the last transformer
     - `⌘F` find, `⌘G` / `⇧⌘G` next / previous match
     - `⌘Z` / `⇧⌘Z` undo / redo
     - `⌘,` settings
@@ -34,6 +36,19 @@ enum HelpText {
     --------------------< 2026-10-27 09:30 >--------------------
 
     `⌘N` adds another one. Separators left empty are removed on close.
+
+    ## Transformers
+
+    `⌘K` opens a palette over the selection, or over the current scrap when
+    nothing is selected. Only transformers that apply to that text are
+    listed; type to filter, `Enter` applies as one undo step, `Esc` closes.
+
+    - Case: UPPER, lower, Title, camelCase, snake_case, kebab-case, CONSTANT_CASE
+    - Encoding: Base64, URL, JSON string escape, each way
+    - Lines: JSON pretty / minify, sort, unique, reverse, remove blank, trim,
+      indent / dedent, join / split
+    - CLI: split a command one flag per line, join it back, comment / uncomment
+    - Time: Epoch ↔ ISO 8601, Calculate (`3+4` → `3+4 = 7`)
 
     ## Markdown
 

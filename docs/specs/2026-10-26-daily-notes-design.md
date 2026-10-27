@@ -33,9 +33,12 @@ In:
   global shortcut in System Settings → Keyboard → Keyboard Shortcuts →
   Services.
 
+- Built-in text transformers behind a `⌘K` palette; see
+  `2026-10-27-transformers-design.md`.
+
 Out (explicitly deferred):
-- Text transformers / plugins. The editor must not get in their way, but
-  nothing is built for them.
+- Transformer plugins (external scripts). The `Transformer` protocol is
+  shaped for them, nothing else is built.
 - Themes beyond the single built-in light/dark pair.
 - Multiple files, search across days, sync.
 

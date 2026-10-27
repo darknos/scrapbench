@@ -42,11 +42,35 @@ to `<name>.conflict-<timestamp>.md` next to it instead.
 | `⌘N` | new timestamped scrap at the end |
 | `⌘S` | save now (autosave runs 2 s after typing anyway) |
 | `⌘⌥A` | select the current scrap (text between separators) |
+| `⌘K` | transform the selection or the current scrap (palette) |
+| `⌘⇧K` | repeat the last transformer |
 | `⌘F` | find |
 | `⌘,` | settings |
 | `⌘?` | help (also in the menu bar menu) |
 
 Launching with `--open` shows the panel immediately (handy for testing).
+
+## Transformers
+
+`⌘K` opens a palette over the selection, or over the current scrap when
+nothing is selected. It lists only the transformers that apply to that text,
+with fuzzy search; `Enter` replaces the text in one undo step. Built-ins:
+
+- **Case**: UPPER CASE, lower case, Title Case, camelCase, snake_case,
+  kebab-case, CONSTANT_CASE (identifier styles work per line).
+- **Encoding**: Base64 encode / decode, URL encode / decode, JSON string
+  escape / unescape.
+- **Lines**: JSON pretty / minify (key order and numbers kept as written),
+  Sort lines, Sort lines unique, Reverse lines, Unique lines, Remove blank
+  lines, Trim trailing whitespace, Trim each line, Indent, Dedent, Join lines
+  with space, Join lines with ", ", Split by comma, Split by whitespace.
+- **CLI**: Split command (one flag per line with ` \` continuations), Join
+  command, Comment lines, Uncomment lines.
+- **Time**: Epoch ↔ ISO 8601; Calculate (`3+4` → `3+4 = 7`, one expression
+  per line, `+ - * / %`, `pow`, `sqrt`, `min`, `max`, `round`, `pi`).
+
+A transformer that cannot handle the text reports why in the banner and
+leaves the text alone.
 
 ## Take to Scrapbench
 
