@@ -2,6 +2,8 @@ APP      = DailyNotes
 BUILD    = build
 BUNDLE   = $(BUILD)/$(APP).app
 BIN      = $(shell swift build -c release --show-bin-path)
+# Signing identity: "-" is ad-hoc; pass SIGN="Developer ID Application: ..." for a real one.
+SIGN    ?= -
 
 .PHONY: build app run test clean sample
 
@@ -18,7 +20,7 @@ app: build
 	cp Resources/Info.plist $(BUNDLE)/Contents/Info.plist
 	# KeyboardShortcuts ships a resource bundle for its recorder UI
 	-cp -R $(BIN)/KeyboardShortcuts_KeyboardShortcuts.bundle $(BUNDLE)/Contents/Resources/ 2>/dev/null
-	codesign --force --sign - --deep $(BUNDLE)
+	codesign --force --sign "$(SIGN)" --deep --options runtime --timestamp=none $(BUNDLE)
 	@echo "built $(BUNDLE)"
 
 run: app

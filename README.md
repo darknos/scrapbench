@@ -10,6 +10,7 @@ Requires Xcode 27 / Swift 6. No `.xcodeproj`; it is a Swift Package.
 
 ```sh
 make app          # builds build/DailyNotes.app (ad-hoc signed)
+make app SIGN="Developer ID Application: Name (TEAMID)"   # sign with a real identity
 make run          # builds and launches it
 make test         # unit tests for DailyNotesCore
 make sample       # generates build/sample-notes.md (~5 MB) for load testing
@@ -35,8 +36,10 @@ to `<name>.conflict-<timestamp>.md` next to it instead.
 
 | Key | Action |
 |---|---|
-| `Esc`, click outside, hotkey | save and hide |
+| `Esc`, close button, hotkey | save and hide |
+| click outside | panel stays, pending edits are saved |
 | `⌘N` | new timestamped entry at the end |
+| `⌘S` | save now (autosave runs 2 s after typing anyway) |
 | `⌘F` | find |
 | `⌘,` | settings |
 

@@ -4,6 +4,7 @@ import DailyNotesCore
 final class EditorTextView: NSTextView {
     var onEscape: () -> Void = {}
     var onNewEntry: () -> Void = {}
+    var onSave: () -> Void = {}
     private(set) var highlight: HighlightCoordinator!
     /// True from open until the first interaction: the end of the document is
     /// kept centred through layout changes that happen after the first show.
@@ -46,7 +47,7 @@ final class EditorTextView: NSTextView {
         editor.isVerticallyResizable = true
         editor.isHorizontallyResizable = false
         editor.textContainer?.widthTracksTextView = true
-        editor.textContainerInset = NSSize(width: 12, height: 12)
+        editor.textContainerInset = NSSize(width: 40, height: 12)
         editor.drawsBackground = true
         editor.backgroundColor = .textBackgroundColor
         editor.isRichText = false
@@ -146,6 +147,10 @@ final class EditorTextView: NSTextView {
         // keyCode 45 is "n" on every layout; charactersIgnoringModifiers is not under Cyrillic.
         if mods == .command, event.keyCode == 45 || event.charactersIgnoringModifiers == "n" {
             onNewEntry()
+            return
+        }
+        if mods == .command, event.keyCode == 1 || event.charactersIgnoringModifiers == "s" {
+            onSave()
             return
         }
         super.keyDown(with: event)

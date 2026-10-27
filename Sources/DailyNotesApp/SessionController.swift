@@ -25,7 +25,9 @@ final class SessionController: NSObject, NSTextViewDelegate {
         editor.delegate = self
         editor.onEscape = { [weak self] in self?.close() }
         editor.onNewEntry = { [weak self] in self?.newEntry() }
+        editor.onSave = { [weak self] in self?.saveNow(force: true) }
         panel.onClose = { [weak self] in self?.close() }
+        panel.onFocusLost = { [weak self] in self?.saveNow() }
         fontObserver = settings.$fontName.combineLatest(settings.$fontSize)
             .dropFirst()
             .receive(on: RunLoop.main)
@@ -36,12 +38,19 @@ final class SessionController: NSObject, NSTextViewDelegate {
     }
 
     func toggle() {
-        panel.isVisible ? close() : open()
+        if !panel.isVisible {
+            open()
+        } else if panel.isKeyWindow {
+            close()
+        } else {
+            panel.show()
+        }
     }
 
     func open() {
         guard !panel.isVisible else { return }
         store = NoteStore(fileURL: settings.fileURL, supportDirectory: Settings.supportDirectory)
+        panel.title = settings.fileURL.lastPathComponent
         editor.font = settings.font
         saveBlocked = false
         editor.isEditable = true
@@ -119,6 +128,15 @@ final class SessionController: NSObject, NSTextViewDelegate {
             }
             return false
         }
+    }
+
+    /// Flushes pending edits immediately, e.g. when focus moves to another app.
+    /// `force` writes even when nothing is pending (explicit ⌘S).
+    private func saveNow(force: Bool = false) {
+        guard force || autosave != nil, !saveBlocked, panel.isVisible else { return }
+        autosave?.invalidate()
+        autosave = nil
+        persist(text)
     }
 
     private func scheduleAutosave() {

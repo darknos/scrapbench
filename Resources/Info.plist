@@ -4,7 +4,7 @@
 <dict>
     <key>CFBundleDevelopmentRegion</key><string>en</string>
     <key>CFBundleExecutable</key><string>DailyNotes</string>
-    <key>CFBundleIdentifier</key><string>com.mmdsmart.DailyNotes</string>
+    <key>CFBundleIdentifier</key><string>org.nosenko.DailyNotes</string>
     <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
     <key>CFBundleName</key><string>DailyNotes</string>
     <key>CFBundlePackageType</key><string>APPL</string>

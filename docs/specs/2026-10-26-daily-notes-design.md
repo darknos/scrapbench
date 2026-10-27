@@ -140,10 +140,11 @@ protocol SyntaxHighlighter { func tokens(in text: String,
 - **`NotePanel`**: `NSPanel` with `.nonactivatingPanel`, `.titled` hidden,
   `.resizable`, `.fullSizeContentView`, floating level, `hidesOnDeactivate`
   off. `frameAutosaveName = "NotePanel"`. Default 720×480 centred.
-  Resigning key (click outside) triggers close.
+  Resigning key (click outside) keeps the panel up and flushes pending
+  edits to disk.
 - **`EditorTextView`**: `NSTextView` (TextKit 2) subclass. Monospace font
   from settings. `cancelOperation(_:)` → close. `paste(_:)` →
-  `pasteAsPlainText`. `⌘N` → new entry. `⌘`-click opens links. Spell
+  `pasteAsPlainText`. `⌘N` → new entry. `⌘S` → save now. `⌘`-click opens links. Spell
   check on, smart quotes/dashes/substitutions off.
 - **`HighlightCoordinator`**: observes `NSTextStorage` edits, computes the
   dirty paragraph range (whole block if a fence was touched), asks the
@@ -198,7 +199,7 @@ Manual checklist (UI, run after `make app`):
 
 - Hotkey opens panel from another app; `Esc` hides it and focus returns
   to that app.
-- Clicking outside hides the panel and saves.
+- Clicking outside keeps the panel visible and saves pending edits.
 - `⌘C/V/X/A/Z/⇧⌘Z/⌘F` work with no visible app menu.
 - `⌘N` appends a separator; repeated `⌘N` on an empty entry only updates
   the time.
