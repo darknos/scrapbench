@@ -4,18 +4,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-DailyNotes: a macOS-only menu bar app (Swift Package, no `.xcodeproj`) that edits one plain-text
-notes file in a floating panel. Each open appends a timestamped separator line; `Esc` saves and
-hides. The design spec in `docs/superpowers/specs/2026-10-26-daily-notes-design.md` is the
+Scrapbench: a macOS-only menu bar app (Swift Package, no `.xcodeproj`), a workbench for text
+scraps: one plain-text file edited in a floating panel. Each open appends a timestamped separator
+line; `Esc` saves and hides. The design spec in `docs/superpowers/specs/2026-10-26-daily-notes-design.md` is the
 authority on behaviour; update it when behaviour changes.
 
 ## Commands
 
 ```sh
-make app                                    # release build → build/DailyNotes.app (ad-hoc signed)
+make app                                    # release build → build/Scrapbench.app (ad-hoc signed)
 make app SIGN="Developer ID Application: …" # sign with a real identity (hardened runtime)
 make run                                    # build + open the app
-make test                                   # = swift test (DailyNotesCore only)
+make test                                   # = swift test (ScrapbenchCore only)
 swift test --filter EntryFormatterTests                      # one suite
 swift test --filter EntryFormatterTests/openOnEmptyText      # one test
 make sample                                 # ~5 MB build/sample-notes.md for load testing
@@ -26,18 +26,18 @@ is verified by running the app.
 
 ## Manual testing of the app
 
-- `build/DailyNotes.app/Contents/MacOS/DailyNotes --open` shows the panel immediately.
-- Always `pkill -x DailyNotes` before relaunching; two instances fight over the file and hotkey.
+- `build/Scrapbench.app/Contents/MacOS/Scrapbench --open` shows the panel immediately.
+- Always `pkill -x Scrapbench` before relaunching; two instances fight over the file and hotkey.
 - Point the app at a scratch file instead of the real notes with
-  `defaults write org.nosenko.DailyNotes filePath /path/to/file.md`; restore with
-  `defaults delete org.nosenko.DailyNotes filePath`. Preferences live in that domain
+  `defaults write org.nosenko.Scrapbench filePath /path/to/file.md`; restore with
+  `defaults delete org.nosenko.Scrapbench filePath`. Preferences live in that domain
   (file path, font, window frame, hotkey).
 
 ## Architecture
 
 Two targets with different language modes (see `Package.swift`):
 
-- `DailyNotesCore` (Swift 6 mode, pure Foundation, fully unit-tested): everything that can be
+- `ScrapbenchCore` (Swift 6 mode, pure Foundation, fully unit-tested): everything that can be
   reasoned about without AppKit.
   - `Separator` — the `--------------------< yyyy-MM-dd HH:mm >--------------------` line format.
   - `EntryFormatter` — `open` / `newEntry` / `finalize`. It tracks only the separators *this
@@ -52,7 +52,7 @@ Two targets with different language modes (see `Package.swift`):
     fences with one pass and supports `shifted(after:by:)` so the app can avoid rescanning on
     plain edits. Tokens carry no colours; `TokenKind` → attributes is the app's job.
 
-- `DailyNotesApp` (Swift 5 mode, AppKit + a SwiftUI settings form, depends on
+- `ScrapbenchApp` (Swift 5 mode, AppKit + a SwiftUI settings form, depends on
   `KeyboardShortcuts`):
   - `SessionController` owns the open → edit → close flow: loads the file, runs the formatter,
     shows the panel, autosaves 2 s after typing, flushes on focus loss and `⌘S`, finalizes and
@@ -87,5 +87,5 @@ Two targets with different language modes (see `Package.swift`):
 ## Conventions specific to this repo
 
 - `Resources/Info.plist` is copied verbatim into the bundle by the Makefile; `LSUIElement` keeps
-  the app out of the Dock. Bundle id is `org.nosenko.DailyNotes`.
+  the app out of the Dock. Bundle id is `org.nosenko.Scrapbench`.
 - Highlighter grammars list comment and string rules first; earlier rules win on overlap.

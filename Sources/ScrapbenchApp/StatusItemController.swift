@@ -4,7 +4,7 @@ final class StatusItemController {
     private let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
 
     init(open: Selector, settings: Selector, help: Selector, target: AnyObject) {
-        item.button?.image = NSImage(systemSymbolName: "note.text", accessibilityDescription: "Daily Notes")
+        item.button?.image = NSImage(systemSymbolName: "note.text", accessibilityDescription: "Scrapbench")
         let menu = NSMenu()
         let openItem = menu.addItem(withTitle: "Open Notes", action: open, keyEquivalent: "")
         openItem.target = target
@@ -13,7 +13,7 @@ final class StatusItemController {
         let helpItem = menu.addItem(withTitle: "Help", action: help, keyEquivalent: "")
         helpItem.target = target
         menu.addItem(.separator())
-        menu.addItem(withTitle: "Quit DailyNotes", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        menu.addItem(withTitle: "Quit Scrapbench", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         item.menu = menu
     }
 }

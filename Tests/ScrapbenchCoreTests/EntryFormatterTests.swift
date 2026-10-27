@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import DailyNotesCore
+@testable import ScrapbenchCore
 
 @Suite struct EntryFormatterTests {
     let d1 = localDate(2026, 10, 26, 14, 35)

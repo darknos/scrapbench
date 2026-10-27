@@ -1,6 +1,6 @@
 import AppKit
 import Combine
-import DailyNotesCore
+import ScrapbenchCore
 
 /// Owns the open → edit → close flow of the panel for one notes file.
 final class SessionController: NSObject, NSTextViewDelegate {

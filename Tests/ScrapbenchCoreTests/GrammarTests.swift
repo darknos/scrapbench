@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import DailyNotesCore
+@testable import ScrapbenchCore
 
 /// Kinds in source order with the matched text, for golden assertions.
 func kinds(_ lang: String, _ src: String) -> [(TokenKind, String)] {

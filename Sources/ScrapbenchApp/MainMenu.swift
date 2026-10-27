@@ -13,7 +13,7 @@ enum MainMenu {
         prefs.target = target
         appMenu.addItem(prefs)
         appMenu.addItem(.separator())
-        appMenu.addItem(withTitle: "Quit DailyNotes", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        appMenu.addItem(withTitle: "Quit Scrapbench", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         appItem.submenu = appMenu
         main.addItem(appItem)
 
@@ -47,7 +47,7 @@ enum MainMenu {
 
         let helpItem = NSMenuItem()
         let helpMenu = NSMenu(title: "Help")
-        let helpEntry = helpMenu.addItem(withTitle: "DailyNotes Help", action: help, keyEquivalent: "?")
+        let helpEntry = helpMenu.addItem(withTitle: "Scrapbench Help", action: help, keyEquivalent: "?")
         helpEntry.target = target
         helpItem.submenu = helpMenu
         main.addItem(helpItem)

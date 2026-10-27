@@ -17,7 +17,7 @@ final class NotePanel: NSPanel {
             backing: .buffered,
             defer: false
         )
-        title = "Daily Notes"
+        title = "Scrapbench"
         standardWindowButton(.miniaturizeButton)?.isHidden = true
         standardWindowButton(.zoomButton)?.isHidden = true
         level = .floating

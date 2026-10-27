@@ -1,5 +1,5 @@
 import AppKit
-import DailyNotesCore
+import ScrapbenchCore
 
 /// Keeps `NSTextStorage` attributes in sync with the highlighter: whole
 /// paragraphs on edit, the enclosing code block when a fence is touched,

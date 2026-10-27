@@ -12,7 +12,7 @@ final class HelpWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = "DailyNotes Help"
+        window.title = "Scrapbench Help"
         window.contentView = scroll
         window.minSize = NSSize(width: 400, height: 300)
         window.center()

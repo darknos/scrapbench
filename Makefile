@@ -1,4 +1,4 @@
-APP      = DailyNotes
+APP      = Scrapbench
 BUILD    = build
 BUNDLE   = $(BUILD)/$(APP).app
 BIN      = $(shell swift build -c release --show-bin-path)
@@ -8,7 +8,7 @@ SIGN    ?= -
 .PHONY: build app run test clean sample
 
 build:
-	swift build -c release --product DailyNotesApp
+	swift build -c release --product ScrapbenchApp
 
 test:
 	swift test
@@ -16,7 +16,7 @@ test:
 app: build
 	rm -rf $(BUNDLE)
 	mkdir -p $(BUNDLE)/Contents/MacOS $(BUNDLE)/Contents/Resources
-	cp $(BIN)/DailyNotesApp $(BUNDLE)/Contents/MacOS/$(APP)
+	cp $(BIN)/ScrapbenchApp $(BUNDLE)/Contents/MacOS/$(APP)
 	cp Resources/Info.plist $(BUNDLE)/Contents/Info.plist
 	# KeyboardShortcuts ships a resource bundle for its recorder UI
 	-cp -R $(BIN)/KeyboardShortcuts_KeyboardShortcuts.bundle $(BUNDLE)/Contents/Resources/ 2>/dev/null

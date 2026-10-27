@@ -1,5 +1,5 @@
 import AppKit
-import DailyNotesCore
+import ScrapbenchCore
 
 /// Muted light/dark palette in the spirit of the Claude desktop app:
 /// near-black text, grey code pills, restrained token colours.

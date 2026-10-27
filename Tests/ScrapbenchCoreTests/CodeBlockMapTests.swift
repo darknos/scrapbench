@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import DailyNotesCore
+@testable import ScrapbenchCore
 
 @Suite struct CodeBlockMapTests {
     func map(_ s: String) -> CodeBlockMap { CodeBlockMap(text: s as NSString) }

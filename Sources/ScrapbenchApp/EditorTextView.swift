@@ -1,5 +1,5 @@
 import AppKit
-import DailyNotesCore
+import ScrapbenchCore
 
 final class EditorTextView: NSTextView {
     static let topPadding: CGFloat = 12

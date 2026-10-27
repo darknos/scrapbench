@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import DailyNotesCore
+@testable import ScrapbenchCore
 
 func localDate(_ y: Int, _ mo: Int, _ d: Int, _ h: Int, _ mi: Int) -> Date {
     var c = DateComponents()

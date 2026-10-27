@@ -1,34 +1,35 @@
-# DailyNotes
+# Scrapbench
 
-A macOS menu bar app for daily notes in a single plain-text file.
-Press the hotkey, a floating editor appears with a fresh timestamped
-separator, type, press `Esc` — saved and hidden.
+A workbench for text scraps, living in the macOS menu bar. One plain-text
+file, a floating editor with syntax highlighting, a timestamped separator
+per session. Press the hotkey, paste, split, fix that long command line,
+jot the thought, press `Esc` — saved and hidden.
 
 ## Build
 
 Requires Xcode 27 / Swift 6. No `.xcodeproj`; it is a Swift Package.
 
 ```sh
-make app          # builds build/DailyNotes.app (ad-hoc signed)
+make app          # builds build/Scrapbench.app (ad-hoc signed)
 make app SIGN="Developer ID Application: Name (TEAMID)"   # sign with a real identity
 make run          # builds and launches it
-make test         # unit tests for DailyNotesCore
+make test         # unit tests for ScrapbenchCore
 make sample       # generates build/sample-notes.md (~5 MB) for load testing
-cp -r build/DailyNotes.app /Applications
+cp -r build/Scrapbench.app /Applications
 ```
 
 ## Defaults
 
 | Setting | Default |
 |---|---|
-| Notes file | `~/Documents/daily-notes.md` |
+| Notes file | `~/Documents/scrapbench.md` |
 | Hotkey | `⌃⌥Space` |
 | Font | Menlo 14 |
 | Panel size | 720×480, remembered after resize |
 
 Backups: first open of each day copies the file to
-`~/Library/Application Support/DailyNotes/backups/`, newest 7 kept.
-Failed saves land in `~/Library/Application Support/DailyNotes/unsaved-*.md`.
+`~/Library/Application Support/Scrapbench/backups/`, newest 7 kept.
+Failed saves land in `~/Library/Application Support/Scrapbench/unsaved-*.md`.
 If the file changed on disk while the panel was open, your text is written
 to `<name>.conflict-<timestamp>.md` next to it instead.
 
@@ -48,3 +49,7 @@ to `<name>.conflict-<timestamp>.md` next to it instead.
 Launching with `--open` shows the panel immediately (handy for testing).
 
 Design: `docs/superpowers/specs/2026-10-26-daily-notes-design.md`.
+
+## License
+
+MIT, see `LICENSE`.

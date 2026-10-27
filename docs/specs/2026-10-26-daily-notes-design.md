@@ -1,4 +1,4 @@
-# Daily Notes — design spec
+# Scrapbench — design spec
 
 Date: 2026-10-26
 Status: approved in conversation, implementation in progress
@@ -18,7 +18,7 @@ The file is ordinary Markdown-ish text, so it stays greppable and syncable
 In:
 - Menu bar agent app (no Dock icon), Spotlight-style floating panel.
 - Global hotkey (default `⌃⌥Space`, configurable) and "Open" menu item.
-- Single notes file, default `~/Documents/daily-notes.md`, path configurable.
+- Single notes file, default `~/Documents/scrapbench.md`, path configurable.
 - Timestamped separator appended on open and on `⌘N`; empty session
   separators are removed on close.
 - Syntax highlighting: Markdown-lite + fenced code blocks for
@@ -49,21 +49,21 @@ global hotkey and its recorder UI. Launch at login uses `SMAppService`.
 
 ```
 Package.swift
-Makefile                      # builds DailyNotes.app bundle, ad-hoc codesign
+Makefile                      # builds Scrapbench.app bundle, ad-hoc codesign
 Sources/
-  DailyNotesCore/             # pure logic, no AppKit UI, unit-tested
-  DailyNotesApp/              # AppKit/SwiftUI UI, executable target
+  ScrapbenchCore/             # pure logic, no AppKit UI, unit-tested
+  ScrapbenchApp/              # AppKit/SwiftUI UI, executable target
 Tests/
-  DailyNotesCoreTests/        # Swift Testing
+  ScrapbenchCoreTests/        # Swift Testing
 Resources/
   Info.plist                  # LSUIElement=YES
 ```
 
 `make app` runs `swift build -c release`, assembles
-`build/DailyNotes.app` (Contents/MacOS binary, Info.plist, Resources) and
+`build/Scrapbench.app` (Contents/MacOS binary, Info.plist, Resources) and
 signs it ad-hoc. `make run` launches it. `swift test` runs the core tests.
 
-### DailyNotesCore
+### ScrapbenchCore
 
 **`Separator`** — formatting and recognition of the separator line:
 
@@ -101,9 +101,9 @@ strings; the app creates one per panel session.
   `.externalChange(conflictURL)`. Otherwise atomic write (temp file +
   rename), returns the new fingerprint.
 - `writeRescue(text:) -> URL`: writes to
-  `~/Library/Application Support/DailyNotes/unsaved-<timestamp>.md`.
+  `~/Library/Application Support/Scrapbench/unsaved-<timestamp>.md`.
 - `backupIfNeeded(today:)`: on the first call of a calendar day copies the
-  file to `~/Library/Application Support/DailyNotes/backups/
+  file to `~/Library/Application Support/Scrapbench/backups/
   daily-notes-<yyyy-MM-dd>.md` and prunes to the newest 7.
 
 Errors are typed (`NoteStoreError`) and carry a user-readable message.
@@ -129,7 +129,7 @@ protocol SyntaxHighlighter { func tokens(in text: String,
   Earlier rules win on overlap (comments and strings go first). One file
   per language in `Grammars/`. Unknown language → background only.
 
-### DailyNotesApp
+### ScrapbenchApp
 
 - **`AppDelegate`**: wires everything, builds an invisible `mainMenu`
   (App, Edit, Find) so `⌘C/V/X/A/Z/⇧⌘Z/⌘F/⌘,` work without a visible
@@ -182,7 +182,7 @@ Principle: typed text is never lost.
 ## Testing
 
 Unit tests (`swift test`, Swift Testing, written TDD-style) for
-`DailyNotesCore`:
+`ScrapbenchCore`:
 
 - `EntryFormatter`: empty file; file without trailing newline; `open`
   then `finalize` with no input removes the separator; with input keeps

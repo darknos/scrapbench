@@ -11,10 +11,10 @@ final class Settings: ObservableObject {
 
     static let defaultFileURL = FileManager.default
         .urls(for: .documentDirectory, in: .userDomainMask)[0]
-        .appendingPathComponent("daily-notes.md")
+        .appendingPathComponent("scrapbench.md")
     static let supportDirectory = FileManager.default
         .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        .appendingPathComponent("DailyNotes")
+        .appendingPathComponent("Scrapbench")
 
     @Published var fileURL: URL { didSet { defaults.set(fileURL.path, forKey: "filePath") } }
     @Published var fontName: String { didSet { defaults.set(fontName, forKey: "fontName") } }

@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import DailyNotesCore
+@testable import ScrapbenchCore
 
 @Suite struct MarkdownHighlighterTests {
     let h = MarkdownHighlighter()
