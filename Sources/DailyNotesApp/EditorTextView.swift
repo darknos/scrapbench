@@ -2,6 +2,9 @@ import AppKit
 import DailyNotesCore
 
 final class EditorTextView: NSTextView {
+    static let topPadding: CGFloat = 12
+    static let sidePadding: CGFloat = 40
+
     var onEscape: () -> Void = {}
     var onNewEntry: () -> Void = {}
     var onSave: () -> Void = {}
@@ -10,8 +13,25 @@ final class EditorTextView: NSTextView {
     /// kept centred through layout changes that happen after the first show.
     private var anchorsEnd = false
 
-    /// Auto-scroll that treats the bottom inset as usable space, so typing
-    /// flows down to the real bottom edge instead of stopping at the middle.
+    /// Empty space below the text, part of the view itself. Scroll view
+    /// `contentInsets` would do the same, but AppKit then routes mouse events
+    /// in the inset area to a private background view and breaks selection.
+    var bottomPadding: CGFloat = 0 {
+        didSet {
+            guard bottomPadding != oldValue else { return }
+            textContainerInset = NSSize(width: Self.sidePadding, height: (Self.topPadding + bottomPadding) / 2)
+        }
+    }
+
+    /// `textContainerInset` is symmetric; shifting the origin up puts the
+    /// whole surplus below the text.
+    override var textContainerOrigin: NSPoint {
+        NSPoint(x: textContainerInset.width, y: Self.topPadding)
+    }
+
+    /// Minimal auto-scroll: the caret stops at the real bottom edge. The
+    /// default keeps extra space below it, so typing after a centred open
+    /// jumps the view before the caret has reached the bottom.
     override func scrollToVisible(_ rect: NSRect) -> Bool {
         guard let scroll = enclosingScrollView else { return super.scrollToVisible(rect) }
         let clip = scroll.contentView
@@ -30,12 +50,37 @@ final class EditorTextView: NSTextView {
     }
 
     override func scrollRangeToVisible(_ range: NSRange) {
-        guard let window else { return super.scrollRangeToVisible(range) }
-        let rect = convert(window.convertFromScreen(firstRect(forCharacterRange: range, actualRange: nil)), from: nil)
+        guard let rect = rect(for: range) else { return super.scrollRangeToVisible(range) }
         _ = scrollToVisible(rect)
     }
 
-    static func make() -> (scroll: NSScrollView, editor: EditorTextView) {
+    /// Rect of `range` in view coordinates, laying the text out first.
+    /// `firstRect(forCharacterRange:)` returns a zero rect right after an
+    /// edit whose line is not laid out yet, which made auto-scroll jump.
+    private func rect(for range: NSRange) -> NSRect? {
+        guard let layoutManager = textLayoutManager, let contentManager = layoutManager.textContentManager else { return nil }
+        let docStart = contentManager.documentRange.location
+        guard let start = contentManager.location(docStart, offsetBy: range.location),
+              let end = contentManager.location(start, offsetBy: range.length),
+              let textRange = NSTextRange(location: start, end: end) else { return nil }
+        layoutManager.ensureLayout(for: textRange)
+        var result: NSRect?
+        layoutManager.enumerateTextSegments(in: textRange, type: .standard, options: [.rangeNotRequired]) { _, frame, _, _ in
+            result = frame
+            return false
+        }
+        if result == nil, let fragment = layoutManager.textLayoutFragment(for: start) {
+            result = fragment.layoutFragmentFrame
+        }
+        guard var rect = result else { return nil }
+        rect.origin.x += textContainerOrigin.x
+        rect.origin.y += textContainerOrigin.y
+        return rect
+    }
+
+    /// `centresEnd` reserves half a view below the text so the document end
+    /// can sit at the centre on open (the notes panel); off for plain viewers.
+    static func make(centresEnd: Bool = true) -> (scroll: NSScrollView, editor: EditorTextView) {
         let scroll = NSScrollView()
         scroll.hasVerticalScroller = true
         scroll.autohidesScrollers = false
@@ -47,7 +92,7 @@ final class EditorTextView: NSTextView {
         editor.isVerticallyResizable = true
         editor.isHorizontallyResizable = false
         editor.textContainer?.widthTracksTextView = true
-        editor.textContainerInset = NSSize(width: 40, height: 12)
+        editor.textContainerInset = NSSize(width: sidePadding, height: topPadding)
         editor.drawsBackground = true
         editor.backgroundColor = .textBackgroundColor
         editor.isRichText = false
@@ -83,13 +128,11 @@ final class EditorTextView: NSTextView {
             }
             DispatchQueue.main.async { editor.highlightViewport() }
         }
-        // A bottom inset of half a view lets the last line sit at the centre on open.
-        scroll.automaticallyAdjustsContentInsets = false
-        scroll.postsFrameChangedNotifications = true
-        NotificationCenter.default.addObserver(forName: NSView.frameDidChangeNotification, object: scroll, queue: .main) { _ in
-            let inset = scroll.contentView.bounds.height / 2
-            scroll.contentInsets.bottom = inset
-            scroll.scrollerInsets.bottom = -inset   // keep the scroller full height
+        if centresEnd {
+            scroll.postsFrameChangedNotifications = true
+            NotificationCenter.default.addObserver(forName: NSView.frameDidChangeNotification, object: scroll, queue: .main) { [weak editor] _ in
+                editor?.bottomPadding = scroll.contentView.bounds.height / 2
+            }
         }
         return (scroll, editor)
     }
@@ -153,6 +196,10 @@ final class EditorTextView: NSTextView {
             onSave()
             return
         }
+        if mods == [.command, .option], event.keyCode == 0 || event.charactersIgnoringModifiers == "a" {
+            selectEntry()
+            return
+        }
         super.keyDown(with: event)
     }
 
@@ -182,6 +229,13 @@ final class EditorTextView: NSTextView {
               shouldChangeText(in: range, replacementString: replacement) else { return }
         textStorage?.replaceCharacters(in: range, with: replacement)
         didChangeText()
+    }
+
+    /// Selects the entry (text between separators) around the cursor.
+    func selectEntry() {
+        let range = Separator.entry(containing: selectedRange().location, in: string as NSString)
+        setSelectedRange(range)
+        scrollRangeToVisible(NSRange(location: range.location, length: 0))
     }
 
     /// Puts the cursor at the end and scrolls just enough to show it.
@@ -235,7 +289,7 @@ final class EditorTextView: NSTextView {
         if let fragment = layoutManager.textLayoutFragment(for: doc.endLocation) {
             endY = fragment.layoutFragmentFrame.maxY
         }
-        endY += textContainerInset.height
+        endY += textContainerOrigin.y
         let clip = scroll.contentView
         let visible = clip.bounds
         let target = endY - visible.height / 2

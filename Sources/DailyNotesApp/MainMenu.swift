@@ -4,7 +4,7 @@ import AppKit
 /// non-activating panel), but AppKit routes ⌘-shortcuts through the main
 /// menu, so one has to exist for Copy/Paste/Undo/Find to work.
 enum MainMenu {
-    static func build(settings: Selector, target: AnyObject) -> NSMenu {
+    static func build(settings: Selector, help: Selector, target: AnyObject) -> NSMenu {
         let main = NSMenu()
 
         let appItem = NSMenuItem()
@@ -44,6 +44,13 @@ enum MainMenu {
         }
         findItem.submenu = find
         main.addItem(findItem)
+
+        let helpItem = NSMenuItem()
+        let helpMenu = NSMenu(title: "Help")
+        let helpEntry = helpMenu.addItem(withTitle: "DailyNotes Help", action: help, keyEquivalent: "?")
+        helpEntry.target = target
+        helpItem.submenu = helpMenu
+        main.addItem(helpItem)
         return main
     }
 }

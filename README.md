@@ -40,8 +40,10 @@ to `<name>.conflict-<timestamp>.md` next to it instead.
 | click outside | panel stays, pending edits are saved |
 | `⌘N` | new timestamped entry at the end |
 | `⌘S` | save now (autosave runs 2 s after typing anyway) |
+| `⌘⌥A` | select the current entry (text between separators) |
 | `⌘F` | find |
 | `⌘,` | settings |
+| `⌘?` | help (also in the menu bar menu) |
 
 Launching with `--open` shows the panel immediately (handy for testing).
 
