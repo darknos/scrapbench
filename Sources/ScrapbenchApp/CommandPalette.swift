@@ -101,15 +101,16 @@ final class CommandPalette: NSPanel, NSTextFieldDelegate, NSTableViewDataSource,
 
     override func resignKey() {
         super.resignKey()
-        dismiss()
+        // Key status went elsewhere (another app, another window): do not pull it back.
+        dismiss(refocusBench: false)
     }
 
-    private func dismiss() {
+    private func dismiss(refocusBench: Bool) {
         guard !closed else { return }
         closed = true
         bench?.removeChildWindow(self)
         orderOut(nil)
-        bench?.makeKey()
+        if refocusBench { bench?.makeKey() }
         onClose()
     }
 
@@ -156,7 +157,7 @@ final class CommandPalette: NSPanel, NSTextFieldDelegate, NSTableViewDataSource,
 
     private func pickSelected() {
         guard table.selectedRow >= 0, case .item(let transformer) = rows[table.selectedRow] else { return }
-        dismiss()
+        dismiss(refocusBench: true)
         onPick(transformer)
     }
 
@@ -175,7 +176,7 @@ final class CommandPalette: NSPanel, NSTextFieldDelegate, NSTableViewDataSource,
         case #selector(NSResponder.moveUp(_:)): moveSelection(by: -1)
         case #selector(NSResponder.moveDown(_:)): moveSelection(by: 1)
         case #selector(NSResponder.insertNewline(_:)): pickSelected()
-        case #selector(NSResponder.cancelOperation(_:)): dismiss()
+        case #selector(NSResponder.cancelOperation(_:)): dismiss(refocusBench: true)
         default: return false
         }
         return true

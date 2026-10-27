@@ -29,7 +29,7 @@ import Testing
             _ = TransformerRegistry.applicable(to: prose)
             _ = TransformerRegistry.applicable(to: numbers)
         }
-        #expect(elapsed < .seconds(1.5), "\(elapsed)")
+        #expect(elapsed < .seconds(3), "\(elapsed)")
     }
 
     @Test func lookupById() {

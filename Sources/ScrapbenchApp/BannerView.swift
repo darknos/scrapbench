@@ -30,24 +30,36 @@ final class BannerView: NSView {
 
     required init?(coder: NSCoder) { fatalError() }
 
-    func show(_ message: String, buttonTitle: String? = nil, action: (() -> Void)? = nil) {
-        flashTimer?.invalidate()
-        isFlash = false
-        label.stringValue = message
-        button.isHidden = buttonTitle == nil
-        button.title = buttonTitle ?? ""
-        onButton = action
-        isHidden = false
+    private struct Message {
+        let text: String
+        let buttonTitle: String?
+        let action: (() -> Void)?
     }
 
+    private var persistent: Message?
     private var flashTimer: Timer?
     private var isFlash = false
 
-    /// A transient message: gone after 4 s or on the next key press. Save
-    /// banners shown with `show` are never dismissed this way.
+    /// Hiding the banner from outside (after a successful save) also
+    /// forgets the persistent message, so a later flash does not revive it.
+    override var isHidden: Bool {
+        didSet { if isHidden, !isFlash { persistent = nil } }
+    }
+
+    /// A persistent message (load/save problems): stays until hidden explicitly.
+    func show(_ message: String, buttonTitle: String? = nil, action: (() -> Void)? = nil) {
+        flashTimer?.invalidate()
+        isFlash = false
+        persistent = Message(text: message, buttonTitle: buttonTitle, action: action)
+        render(persistent!)
+    }
+
+    /// A transient message: gone after 4 s or on the next key press. A
+    /// persistent message underneath comes back when the flash ends.
     func flash(_ message: String) {
-        show(message)
+        flashTimer?.invalidate()
         isFlash = true
+        render(Message(text: message, buttonTitle: nil, action: nil))
         flashTimer = Timer.scheduledTimer(withTimeInterval: 4, repeats: false) { [weak self] _ in
             self?.dismissFlash()
         }
@@ -57,7 +69,15 @@ final class BannerView: NSView {
         guard isFlash else { return }
         flashTimer?.invalidate()
         isFlash = false
-        isHidden = true
+        if let persistent { render(persistent) } else { isHidden = true }
+    }
+
+    private func render(_ message: Message) {
+        label.stringValue = message.text
+        button.isHidden = message.buttonTitle == nil
+        button.title = message.buttonTitle ?? ""
+        onButton = message.action
+        isHidden = false
     }
 
     @objc private func tapped() { onButton?() }
