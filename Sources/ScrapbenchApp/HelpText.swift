@@ -19,6 +19,13 @@ enum HelpText {
     Clicking outside leaves the panel open and saves pending edits.
     Pasting always inserts plain text.
 
+    ## Take to Scrapbench
+
+    Select text in any app, right-click → Services → Take to Scrapbench.
+    It lands at the end of the file on its own line. Give the service a
+    global shortcut in System Settings → Keyboard → Keyboard Shortcuts →
+    Services.
+
     ## Entries
 
     Each time the panel opens, a separator with the current time is appended

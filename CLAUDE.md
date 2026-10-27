@@ -32,6 +32,11 @@ is verified by running the app.
   `defaults write org.nosenko.Scrapbench filePath /path/to/file.md`; restore with
   `defaults delete org.nosenko.Scrapbench filePath`. Preferences live in that domain
   (file path, font, window frame, hotkey).
+- The "Take to Scrapbench" service is found through LaunchServices. After a rebuild in `build/`,
+  register it with
+  `/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f build/Scrapbench.app`
+  and `/System/Library/CoreServices/pbs -update`. It can be invoked without the UI from a
+  small Swift tool calling `NSPerformService("Take to Scrapbench", pasteboard)`.
 
 ## Architecture
 

@@ -27,6 +27,11 @@ In:
 - Autosave while the panel is open, atomic writes, external-change
   detection, daily backups.
 - Settings window: file path, hotkey, launch at login, font and size.
+- macOS service "Take to Scrapbench": selected text in any app lands at the
+  end of the file on its own line (`EntryFormatter.append(chunk:to:)`),
+  opening the panel first if it is hidden. Users can give the service a
+  global shortcut in System Settings → Keyboard → Keyboard Shortcuts →
+  Services.
 
 Out (explicitly deferred):
 - Text transformers / plugins. The editor must not get in their way, but
@@ -133,7 +138,10 @@ protocol SyntaxHighlighter { func tokens(in text: String,
 
 - **`AppDelegate`**: wires everything, builds an invisible `mainMenu`
   (App, Edit, Find) so `⌘C/V/X/A/Z/⇧⌘Z/⌘F/⌘,` work without a visible
-  menu bar. Handles `⌘Q` → close session then terminate.
+  menu bar. Handles `⌘Q` → close session then terminate. Is the
+  `servicesProvider`: `takeToBench(_:userData:error:)` reads the pasteboard
+  string and calls `SessionController.take(text:)`; `NSServices` in
+  `Info.plist` declares the menu item with send type `public.utf8-plain-text`.
 - **`StatusItemController`**: menu bar icon, menu: Open, Settings…, Quit.
 - **`HotkeyController`**: `KeyboardShortcuts.Name.togglePanel`, toggles
   the panel.
@@ -159,6 +167,8 @@ protocol SyntaxHighlighter { func tokens(in text: String,
   - close: `finalize`, `save` if text ≠ loaded snapshot, hide panel. On
     save failure: keep panel open, show banner, `writeRescue`.
   - external change on save: banner with conflict path, panel stays open.
+  - take: open if hidden (adds the session separator), append the chunk via
+    `replaceTail`, reveal the end, schedule autosave.
 - **`BannerView`**: one-line message above the editor with optional
   "Open Settings" button; read-only editor when load failed.
 - **`SettingsView`** (SwiftUI in an `NSWindow`): file path with "Choose…"

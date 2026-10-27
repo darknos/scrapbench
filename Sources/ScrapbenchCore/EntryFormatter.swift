@@ -41,6 +41,19 @@ public struct EntryFormatter {
         return result.hasSuffix("\n") ? String(result) : String(result) + "\n"
     }
 
+    /// Appends a piece of text taken from elsewhere (the "Take to Scrapbench"
+    /// service) on its own line, ending with exactly one newline. Blank
+    /// chunks leave the text unchanged.
+    public static func append(chunk: String, to text: String) -> String {
+        let normalised = chunk.replacingOccurrences(of: "\r\n", with: "\n")
+        guard normalised.contains(where: { !$0.isWhitespace }) else { return text }
+        var body = Substring(normalised)
+        while body.last == "\n" { body = body.dropLast() }
+        var result = text
+        if !result.isEmpty, !result.hasSuffix("\n") { result += "\n" }
+        return result + body + "\n"
+    }
+
     private mutating func append(separator: String, to text: String) -> (text: String, cursor: Int) {
         var result = text
         if !result.isEmpty, !result.hasSuffix("\n") { result += "\n" }

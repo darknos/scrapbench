@@ -13,7 +13,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem = StatusItemController(open: #selector(openNotes), settings: #selector(openSettings),
                                           help: #selector(openHelp), target: self)
         hotkey = HotkeyController { [weak self] in self?.session.toggle() }
+        NSApp.servicesProvider = self
         if CommandLine.arguments.contains("--open") { session.open() }
+    }
+
+    /// "Take to Scrapbench" service; the selector name must match `NSMessage` in Info.plist.
+    @objc func takeToBench(_ pasteboard: NSPasteboard, userData: String, error: AutoreleasingUnsafeMutablePointer<NSString>) {
+        guard let text = pasteboard.string(forType: .string) else {
+            error.pointee = "No text selected"
+            return
+        }
+        session.take(text: text)
     }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {

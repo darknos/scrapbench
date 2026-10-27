@@ -48,6 +48,14 @@ to `<name>.conflict-<timestamp>.md` next to it instead.
 
 Launching with `--open` shows the panel immediately (handy for testing).
 
+## Take to Scrapbench
+
+Select text in any app, right-click → Services → **Take to Scrapbench**: the
+text lands at the end of your file on its own line, under a fresh
+separator if the panel was hidden. Assign it a global shortcut in
+System Settings → Keyboard → Keyboard Shortcuts → Services → Text.
+The service appears once the app has been launched from `/Applications`.
+
 Design: `docs/superpowers/specs/2026-10-26-daily-notes-design.md`.
 
 ## License

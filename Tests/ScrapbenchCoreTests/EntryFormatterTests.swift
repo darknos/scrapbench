@@ -100,6 +100,25 @@ import Testing
         #expect(f.finalize(text: t) == "a\n\(sep1)\nhi\n")
     }
 
+    @Test func appendChunkToEmptyText() {
+        #expect(EntryFormatter.append(chunk: "hello", to: "") == "hello\n")
+    }
+
+    @Test func appendChunkStartsOnNewLine() {
+        #expect(EntryFormatter.append(chunk: "b", to: "a") == "a\nb\n")
+        #expect(EntryFormatter.append(chunk: "b", to: "a\n") == "a\nb\n")
+    }
+
+    @Test func appendChunkNormalisesTrailingNewlines() {
+        #expect(EntryFormatter.append(chunk: "b\n\n\n", to: "a\n") == "a\nb\n")
+        #expect(EntryFormatter.append(chunk: "x\r\ny\r\n", to: "") == "x\ny\n")
+    }
+
+    @Test func appendBlankChunkChangesNothing() {
+        #expect(EntryFormatter.append(chunk: "  \n", to: "a\n") == "a\n")
+        #expect(EntryFormatter.append(chunk: "", to: "a") == "a")
+    }
+
     @Test func finalizePreservesEditsAbove() {
         var f = EntryFormatter()
         let t = f.open(text: "a\n", date: d1).text.replacingOccurrences(of: "a\n", with: "b\n")

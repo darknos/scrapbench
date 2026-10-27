@@ -86,6 +86,18 @@ final class SessionController: NSObject, NSTextViewDelegate {
         scheduleAutosave()
     }
 
+    /// Text handed over by the "Take to Scrapbench" service: lands at the end
+    /// of the file on its own line, in the entry this open created.
+    func take(text: String) {
+        if !panel.isVisible { open() } else { panel.show() }
+        guard editor.isEditable else { return }
+        let result = EntryFormatter.append(chunk: text, to: self.text)
+        guard result != self.text else { return }
+        editor.replaceTail(with: result)
+        editor.revealEnd()
+        scheduleAutosave()
+    }
+
     func close() {
         guard panel.isVisible, !closing else { return }
         closing = true
