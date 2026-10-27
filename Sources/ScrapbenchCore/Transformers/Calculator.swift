@@ -25,18 +25,23 @@ public enum Calculator {
     }
 }
 
-public struct CalculateTransformer: Transformer {
+public struct CalculateTransformer: Transformer, LineAware {
     public let id = "calc.evaluate"
     public let name = "Calculate"
     public let group = TransformerGroup.math
-    private static let resultSuffix = try! NSRegularExpression(pattern: "\\s*=\\s*[^=]*$")
     private static let operators = CharacterSet(charactersIn: "+-*/%(")
     public init() {}
 
-    public func canApply(to text: String) -> Bool {
-        let expressions = Lines(text).lines.filter { !$0.allSatisfy(\.isWhitespace) }.map(Self.expression)
-        guard expressions.contains(where: { $0.rangeOfCharacter(from: Self.operators) != nil }) else { return false }
-        return expressions.allSatisfy { (try? Calculator.evaluate($0)) != nil }
+    public func canApply(to text: String) -> Bool { canApply(lines: Lines(text)) }
+
+    func canApply(lines: Lines) -> Bool {
+        guard lines.lines.contains(where: { Self.expression($0).rangeOfCharacter(from: Self.operators) != nil }) else {
+            return false
+        }
+        if lines.byteCount > transformerParseLimit { return true }
+        return lines.lines.allSatisfy { line in
+            line.allSatisfy(\.isWhitespace) || (try? Calculator.evaluate(Self.expression(line))) != nil
+        }
     }
 
     public func apply(_ text: String) throws -> String {
@@ -51,8 +56,7 @@ public struct CalculateTransformer: Transformer {
 
     /// The line without a previous ` = result`, trimmed on the right.
     private static func expression(_ line: String) -> String {
-        let range = NSRange(location: 0, length: (line as NSString).length)
-        let stripped = resultSuffix.stringByReplacingMatches(in: line, range: range, withTemplate: "")
+        let stripped = line.lastIndex(of: "=").map { line[..<$0] } ?? Substring(line)
         return String(stripped.reversed().drop(while: \.isWhitespace).reversed())
     }
 }

@@ -60,14 +60,17 @@ public enum CommandSplitter {
     }
 }
 
-public struct SplitCommandTransformer: Transformer {
+public struct SplitCommandTransformer: Transformer, LineAware {
     public let id = "cli.split"
     public let name = "Split command"
     public let group = TransformerGroup.cli
     public init() {}
 
-    public func canApply(to text: String) -> Bool {
-        let content = Lines(text).lines.filter { !$0.allSatisfy(\.isWhitespace) }
+    public func canApply(to text: String) -> Bool { canApply(lines: Lines(text)) }
+
+    func canApply(lines: Lines) -> Bool {
+        if lines.byteCount > transformerParseLimit { return true }
+        let content = lines.lines.filter { !$0.allSatisfy(\.isWhitespace) }
         guard content.count == 1 else { return false }
         return content[0].trimmingCharacters(in: .whitespaces).contains(where: \.isWhitespace)
     }

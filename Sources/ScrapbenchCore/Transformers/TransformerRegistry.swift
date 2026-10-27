@@ -24,7 +24,8 @@ public enum TransformerRegistry {
     ]
 
     public static func applicable(to text: String) -> [any Transformer] {
-        builtIn.filter { $0.canApply(to: text) }
+        let lines = Lines(text)
+        return builtIn.filter { ($0 as? LineAware)?.canApply(lines: lines) ?? $0.canApply(to: text) }
     }
 
     public static func transformer(id: String) -> (any Transformer)? {

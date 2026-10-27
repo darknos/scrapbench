@@ -2,7 +2,7 @@ import Foundation
 
 /// A transformer defined on the array of lines; `Lines` supplies the
 /// trailing-newline and CRLF rules.
-public struct LineTransformer: Transformer {
+public struct LineTransformer: Transformer, LineAware {
     public let id: String
     public let name: String
     public let group: TransformerGroup
@@ -19,7 +19,11 @@ public struct LineTransformer: Transformer {
         self.transform = transform
     }
 
-    public func canApply(to text: String) -> Bool { canApplyLines(Lines(text).lines) }
+    public func canApply(to text: String) -> Bool { canApply(lines: Lines(text)) }
+
+    func canApply(lines: Lines) -> Bool {
+        lines.byteCount > transformerParseLimit || canApplyLines(lines.lines)
+    }
 
     public func apply(_ text: String) throws -> String {
         let lines = Lines(text)
