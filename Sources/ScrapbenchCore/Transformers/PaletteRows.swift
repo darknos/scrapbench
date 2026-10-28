@@ -24,7 +24,7 @@ public enum PaletteRows {
             var group: TransformerGroup?
             for item in items {
                 if item.group != group {
-                    rows.append(.header(item.group.rawValue))
+                    rows.append(.header(item.group.name))
                     group = item.group
                 }
                 rows.append(.item(id: item.id))

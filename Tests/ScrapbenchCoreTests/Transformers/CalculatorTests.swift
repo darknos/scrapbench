@@ -29,7 +29,7 @@ import Testing
 
     @Test func belongsToMathGroup() {
         #expect(t.group == .math)
-        #expect(TransformerGroup.math.rawValue == "Math")
+        #expect(TransformerGroup.math.name == "Math")
     }
 
     @Test func applicability() {

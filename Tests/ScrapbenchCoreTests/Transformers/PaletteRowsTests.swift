@@ -37,6 +37,12 @@ struct PaletteStub: Transformer {
                 == PaletteRows.build(items: all, query: "", lastID: nil))
     }
 
+    @Test func customGroupsAreHeadersToo() {
+        let ai = PaletteStub(id: "script.improve", name: "Improve text", group: TransformerGroup("AI"))
+        let rows = PaletteRows.build(items: [upper, ai], query: "", lastID: nil)
+        #expect(rows == [.header("Case"), .item(id: "case.upper"), .header("AI"), .item(id: "script.improve")])
+    }
+
     @Test func queryIsFlatAndRanked() {
         let rows = PaletteRows.build(items: all, query: "sort", lastID: nil)
         #expect(rows == [.item(id: "lines.sort"), .item(id: "lines.sortUnique")])

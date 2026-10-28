@@ -1,12 +1,17 @@
 import Foundation
 
-public enum TransformerGroup: String, CaseIterable, Sendable {
-    case `case` = "Case"
-    case encoding = "Encoding"
-    case lines = "Lines"
-    case cli = "CLI"
-    case time = "Time"
-    case math = "Math"
+/// A palette section. Built-ins use the constants; scripts name their own.
+public struct TransformerGroup: Hashable, Sendable {
+    public let name: String
+    public init(_ name: String) { self.name = name }
+
+    public static let `case` = TransformerGroup("Case")
+    public static let encoding = TransformerGroup("Encoding")
+    public static let lines = TransformerGroup("Lines")
+    public static let cli = TransformerGroup("CLI")
+    public static let time = TransformerGroup("Time")
+    public static let math = TransformerGroup("Math")
+    public static let scripts = TransformerGroup("Scripts")
 }
 
 /// A pure text → text operation offered in the command palette.
