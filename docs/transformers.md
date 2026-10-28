@@ -100,7 +100,10 @@ exec claude -p --model sonnet --tools "" --no-session-persistence --strict-mcp-c
 ```
 
 `translate-to-english.sh` is the same file with another prompt and name;
-change the language in both to get another target.
+change the language in both to get another target. `corporate-style.sh` is
+the same again with a prompt that fixes the text, makes it fit for the whole
+company and translates it to English; the demo in the README runs it on
+something written in a bad mood.
 
 `json-pretty-jq.sh` shows that it is not about AI at all:
 

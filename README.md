@@ -9,7 +9,7 @@ floating editor with syntax highlighting, a timestamped separator per session. P
 line, jot the thought, press `Esc` — saved and hidden. Your own transformers are
 scripts, AI rewrites and translations included.
 
-![Paste a command, split it; paste JSON, pretty-print it; epoch, calculator; then Improve text through the Claude Code CLI while typing goes on: each scrap under its own timestamp](docs/demo.gif)
+![Paste a command, split it; paste JSON, pretty-print it; epoch, calculator; then Corporate style through the Claude Code CLI while typing goes on, URL decode and Base64 under it: each scrap under its own timestamp](docs/demo.gif)
 
 ## Install
 
@@ -110,10 +110,11 @@ on stdin, the result goes out on stdout, a `# @name` comment on top gives
 it a name. Press `⌘K`: it is in the list, next to the built-ins.
 
 Scripts run without blocking the editor, so a round trip to an AI model
-fits in. `Examples/transformers/` has three ready to copy:
+fits in. `Examples/transformers/` has four ready to copy:
 
 - **Improve text**: fix mistakes, keep tone and language, via the Claude Code CLI
 - **Translate to English**: same file, another prompt; change the language once to get Bulgarian or German
+- **Corporate style**: fixes the text, makes it fit for the whole company and translates it to English, whatever mood it was written in
 - **JSON pretty (jq)**: any shell tool works the same way
 
 Select a paragraph, `⌘K`, `impr`, `Enter`, keep typing. The result lands
