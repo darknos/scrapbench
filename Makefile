@@ -3,7 +3,9 @@ BUILD    = build
 BUNDLE   = $(BUILD)/$(APP).app
 BIN      = $(shell swift build -c release --show-bin-path)
 # Signing identity: "-" is ad-hoc; pass SIGN="Developer ID Application: ..." for a real one.
+# A real identity gets a secure timestamp, which notarization requires; ad-hoc cannot have one.
 SIGN    ?= -
+TIMESTAMP = $(if $(filter -,$(SIGN)),--timestamp=none,--timestamp)
 
 ICONS    = $(BUILD)/icons/AppIcon.icns
 
@@ -29,7 +31,7 @@ app: build $(ICONS)
 	cp $(BUILD)/icons/AppIcon.icns $(BUILD)/icons/MenuIcon.png $(BUILD)/icons/MenuIcon@2x.png $(BUNDLE)/Contents/Resources/
 	# KeyboardShortcuts ships a resource bundle for its recorder UI
 	-cp -R $(BIN)/KeyboardShortcuts_KeyboardShortcuts.bundle $(BUNDLE)/Contents/Resources/ 2>/dev/null
-	codesign --force --sign "$(SIGN)" --deep --options runtime --timestamp=none $(BUNDLE)
+	codesign --force --sign "$(SIGN)" --deep --options runtime $(TIMESTAMP) $(BUNDLE)
 	@echo "built $(BUNDLE)"
 
 run: app
