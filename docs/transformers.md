@@ -67,9 +67,11 @@ The header shows `<name>…` in place of the save status and the editor stays
 editable. When the result arrives:
 
 - The text the script was given is still there, unchanged: it is replaced in
-  one undo step and selected.
+  one undo step.
 - You edited it meanwhile: the result is added as a new scrap at the end,
-  selected, with the banner `<name>: text changed, result added below`.
+  with the banner `<name>: text changed, result added below`.
+- Either way the result is selected only if you were waiting for it. If you
+  went on typing somewhere else, the caret stays with you.
 - You hid the bench meanwhile: it opens again with the result at the end under
   a fresh separator, selected, with the same banner.
 - The script failed: the banner says why; nothing changes.

@@ -317,13 +317,24 @@ final class EditorTextView: NSTextView {
         return (range, storage.substring(with: range))
     }
 
-    /// One undoable replacement; the new text becomes the selection.
-    func replace(_ range: NSRange, with text: String) {
+    /// One undoable replacement; the new text becomes the selection. With
+    /// `select: false` the caret stays where it was (moved past the edit if
+    /// it sat after it) and nothing scrolls, for results that land while
+    /// the user is typing elsewhere.
+    func replace(_ range: NSRange, with text: String, select: Bool = true) {
+        let caret = selectedRange()
         guard shouldChangeText(in: range, replacementString: text) else { return }
         textStorage?.replaceCharacters(in: range, with: text)
         didChangeText()
-        setSelectedRange(NSRange(location: range.location, length: (text as NSString).length))
-        scrollRangeToVisible(NSRange(location: range.location, length: 0))
+        let length = (text as NSString).length
+        if select {
+            setSelectedRange(NSRange(location: range.location, length: length))
+            scrollRangeToVisible(NSRange(location: range.location, length: 0))
+        } else if caret.location >= range.upperBound {
+            setSelectedRange(NSRange(location: caret.location + length - range.length, length: caret.length))
+        } else if caret.location > range.location {
+            setSelectedRange(NSRange(location: range.location + length, length: 0))
+        }
     }
 
     /// Selects the scrap (text between separators) around the cursor.

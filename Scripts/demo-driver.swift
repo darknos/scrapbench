@@ -39,7 +39,7 @@ func type(_ text: String) {
             e.post(tap: .cgSessionEventTap)
             usleep(12_000)
         }
-        usleep(ch == "\n" ? 180_000 : UInt32.random(in: 35_000...85_000))
+        usleep(ch == "\n" ? 150_000 : UInt32.random(in: 20_000...45_000))
     }
 }
 

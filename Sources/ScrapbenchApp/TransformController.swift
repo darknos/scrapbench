@@ -141,11 +141,14 @@ final class TransformController {
         case .failure(let error):
             banner.flash("\(pending.name): \(error.message)")
         case .success(let output):
+            // Select the result only for a user who is still waiting on it; one
+            // who moved on keeps the caret, or the next keystroke would eat it.
+            let waiting = editor.selectedRange() == pending.range
             if editor.window?.isVisible == true, let range = pending.range,
                pending.isIntact(in: editor.string as NSString) {
-                if output != pending.text { editor.replace(range, with: output) }
+                if output != pending.text { editor.replace(range, with: output, select: waiting) }
             } else if let range = onAppendResult?(output) {
-                editor.setSelectedRange(range)
+                if waiting || editor.window?.isVisible != true { editor.setSelectedRange(range) }
                 banner.flash("\(pending.name): text changed, result added below")
             } else {
                 banner.flash("\(pending.name): result could not be added")

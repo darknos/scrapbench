@@ -106,13 +106,16 @@ stays editable, the Transform button works as usual.
 When the result arrives:
 
 1. **Panel visible, target text unchanged.** The range is replaced through
-   `editor.replace` (one undo step, result selected). The range is kept in
+   `editor.replace` (one undo step). The result is selected only when the
+   selection has not moved since the script started; a user who went on
+   typing elsewhere keeps the caret, or the next keystroke would replace the
+   result. The range is kept in
    step with edits made above it while the script ran (the same shift logic
    `HighlightCoordinator` applies to its `IndexSet`); edits inside the range
    count as a change. Autosave runs on its usual timer.
 2. **Panel visible, target text changed.** A new scrap is appended
    (`formatter.newScrap` then `ScrapFormatter.append(chunk:)` with the
-   result), the result is selected, banner
+   result), selected under the same rule as above, banner
    `<name>: text changed, result added below`.
 3. **Panel hidden** (`Esc` while the script ran; the session closed and the
    file was saved). The result goes the "Take to Scrapbench" way:
