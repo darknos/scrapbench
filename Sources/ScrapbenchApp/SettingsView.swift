@@ -43,6 +43,14 @@ struct SettingsView: View {
                 }
                 .pickerStyle(.segmented)
             }
+            Section("Transformers") {
+                HStack {
+                    Text("Scripts in the transformers folder appear in the palette.")
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Button("Open transformers folder", action: openTransformersFolder)
+                }
+            }
             Section("Font") {
                 Picker("Family", selection: $settings.fontName) {
                     ForEach(monospacedFonts, id: \.self) { Text($0).tag($0) }
@@ -53,6 +61,12 @@ struct SettingsView: View {
         .formStyle(.grouped)
         .frame(width: 440)
         .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func openTransformersFolder() {
+        let url = Settings.transformersDirectory
+        try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        NSWorkspace.shared.open(url)
     }
 
     private func chooseFile() {

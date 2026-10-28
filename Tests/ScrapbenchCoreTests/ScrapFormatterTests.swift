@@ -169,4 +169,11 @@ import Testing
         let t = f.open(text: "", date: d1).text + "```\nx\n"
         #expect(f.newScrap(text: t, date: d2).text == t + "```\n" + sep2 + "\n")
     }
+
+    @Test func bodyOfChunkIsWhatAppendAdds() {
+        let chunk = "a\r\nb\n\n"
+        #expect(ScrapFormatter.body(of: chunk) == "a\nb")
+        #expect(ScrapFormatter.append(chunk: chunk, to: "x") == "x\na\nb\n")
+        #expect(ScrapFormatter.body(of: "  \n") == "")
+    }
 }

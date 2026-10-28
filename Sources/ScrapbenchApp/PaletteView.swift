@@ -102,7 +102,7 @@ final class PaletteView: NSView {
 
     // MARK: - Cells
 
-    static func cell(for row: PaletteRow, name: (String) -> String, first: Bool) -> NSView {
+    static func cell(for row: PaletteRow, name: (String) -> String, detail: (String) -> String, first: Bool) -> NSView {
         let theme = Theme.default
         let cell = NSView()
         let label = NSTextField(labelWithString: "")
@@ -131,6 +131,8 @@ final class PaletteView: NSView {
             label.stringValue = name(id)
             label.font = Settings.shared.font
             label.textColor = theme.text
+            shortcut.stringValue = detail(id)
+            shortcut.lineBreakMode = .byTruncatingTail
         case .empty:
             label.stringValue = "No transformers apply to this text"
             label.font = Settings.shared.font
@@ -144,7 +146,8 @@ final class PaletteView: NSView {
             label.leadingAnchor.constraint(equalTo: cell.leadingAnchor, constant: 8),
             label.trailingAnchor.constraint(lessThanOrEqualTo: shortcut.leadingAnchor, constant: -8),
             label.centerYAnchor.constraint(equalTo: cell.centerYAnchor),
-            shortcut.widthAnchor.constraint(equalToConstant: 72),
+            shortcut.widthAnchor.constraint(greaterThanOrEqualToConstant: 72),
+            shortcut.widthAnchor.constraint(lessThanOrEqualTo: cell.widthAnchor, multiplier: 0.5),
             shortcut.trailingAnchor.constraint(equalTo: cell.trailingAnchor, constant: -8),
             shortcut.centerYAnchor.constraint(equalTo: cell.centerYAnchor),
         ])

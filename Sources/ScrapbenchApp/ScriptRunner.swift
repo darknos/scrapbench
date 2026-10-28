@@ -100,13 +100,13 @@ final class ScriptRunner {
 
     private func collect(_ data: Data, into key: ReferenceWritableKeyPath<ScriptRunner, Data>,
                          handle: FileHandle, done: DispatchGroup) {
-        queue.async {
-            if data.isEmpty {
-                handle.readabilityHandler = nil
-                done.leave()
-            } else {
-                self[keyPath: key].append(data)
-            }
+        if data.isEmpty {
+            // EOF: the handler keeps firing until it is cleared, so clear it
+            // here, on the handle's own queue, and leave the group once.
+            handle.readabilityHandler = nil
+            queue.async { done.leave() }
+        } else {
+            queue.async { self[keyPath: key].append(data) }
         }
     }
 

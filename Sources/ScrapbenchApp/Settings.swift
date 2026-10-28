@@ -49,6 +49,7 @@ final class Settings: ObservableObject {
     static let supportDirectory = FileManager.default
         .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         .appendingPathComponent("Scrapbench")
+    static let transformersDirectory = supportDirectory.appendingPathComponent("Transformers")
 
     @Published var fileURL: URL { didSet { defaults.set(fileURL.path, forKey: "filePath") } }
     @Published var fontName: String { didSet { defaults.set(fontName, forKey: "fontName") } }

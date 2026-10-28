@@ -146,6 +146,7 @@ final class PaletteController: NSObject, NSTextFieldDelegate, NSTableViewDataSou
     func tableView(_ tableView: NSTableView, rowViewForRow row: Int) -> NSTableRowView? { PaletteRowView() }
 
     func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
-        PaletteView.cell(for: rows[row], name: { [byID] in byID[$0]?.name ?? $0 }, first: row == 0)
+        PaletteView.cell(for: rows[row], name: { [byID] in byID[$0]?.name ?? $0 },
+                         detail: { [byID] in (byID[$0] as? ScriptTransformer)?.description ?? "" }, first: row == 0)
     }
 }

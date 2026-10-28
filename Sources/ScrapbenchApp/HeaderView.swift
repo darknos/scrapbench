@@ -11,8 +11,11 @@ final class HeaderView: NSView {
         set { nameLabel.stringValue = newValue }
     }
     var status: String {
-        get { statusLabel.stringValue }
-        set { statusLabel.stringValue = newValue }
+        didSet { renderStatus() }
+    }
+    /// A running script transformer; shown in place of the save status until cleared.
+    var runningName: String? {
+        didSet { renderStatus() }
     }
     var isPaletteOpen: Bool {
         get { button.state == .on }
@@ -31,6 +34,7 @@ final class HeaderView: NSView {
     private let wrapButton = NSButton(title: "", target: nil, action: nil)
 
     init() {
+        status = ""
         super.init(frame: .zero)
         let theme = Theme.default
         nameLabel.font = .monospacedSystemFont(ofSize: 13, weight: .semibold)
@@ -77,6 +81,10 @@ final class HeaderView: NSView {
     }
 
     required init?(coder: NSCoder) { fatalError() }
+
+    private func renderStatus() {
+        statusLabel.stringValue = runningName.map { "\($0)…" } ?? status
+    }
 
     /// Whether `view` (from a hit test) is the Transform button or part of it.
     func isTransformControl(_ view: NSView?) -> Bool {

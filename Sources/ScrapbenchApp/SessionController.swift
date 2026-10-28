@@ -26,6 +26,12 @@ final class SessionController: NSObject, NSTextViewDelegate {
         store = ScrapStore(fileURL: settings.fileURL, supportDirectory: Settings.supportDirectory)
         super.init()
         transform = TransformController(editor: editor, banner: panel.banner, palette: panel.palette, header: panel.header)
+        transform.onAppendResult = { [weak self] in self?.appendResult($0) }
+        do {
+            try FileManager.default.createDirectory(at: Settings.transformersDirectory, withIntermediateDirectories: true)
+        } catch {
+            NSLog("transformers folder: \(error)")
+        }
         panel.header.onTransform = { [weak self] in self?.transform.openPalette() }
         editor.onToggleWrap = { [weak self] in self?.settings.wordWrap.toggle() }
         panel.header.onToggleWrap = { [weak self] in self?.settings.wordWrap.toggle() }
@@ -114,12 +120,30 @@ final class SessionController: NSObject, NSTextViewDelegate {
     /// of the file on its own line, in the scrap this open created.
     func take(text: String) {
         if !panel.isVisible { open() } else { panel.show() }
-        guard editor.isEditable else { return }
-        let result = ScrapFormatter.append(chunk: text, to: self.text)
-        guard result != self.text else { return }
+        append(chunk: text)
+    }
+
+    /// A script result that no longer fits where it was asked for: lands at
+    /// the end under a separator (a fresh scrap, or the open's own one when
+    /// the panel was hidden). Returns the result's range, nil when nothing
+    /// could be added.
+    func appendResult(_ text: String) -> NSRange? {
+        if !panel.isVisible { open() } else { newScrap() }
+        guard append(chunk: text) else { return nil }
+        let body = ScrapFormatter.body(of: text)
+        let length = (body as NSString).length
+        return NSRange(location: (self.text as NSString).length - 1 - length, length: length)
+    }
+
+    @discardableResult
+    private func append(chunk: String) -> Bool {
+        guard editor.isEditable else { return false }
+        let result = ScrapFormatter.append(chunk: chunk, to: self.text)
+        guard result != self.text else { return false }
         editor.replaceTail(with: result)
         editor.revealEnd()
         scheduleAutosave()
+        return true
     }
 
     func close() {
@@ -201,5 +225,10 @@ final class SessionController: NSObject, NSTextViewDelegate {
 
     func textDidChange(_ notification: Notification) {
         scheduleAutosave()
+    }
+
+    func textView(_ textView: NSTextView, shouldChangeTextIn range: NSRange, replacementString: String?) -> Bool {
+        transform.textWillChange(in: range, replacement: replacementString ?? "")
+        return true
     }
 }

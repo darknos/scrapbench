@@ -30,6 +30,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        session.transform.cancelRunning()
         session.close()
         return .terminateNow
     }

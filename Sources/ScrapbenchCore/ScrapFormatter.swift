@@ -50,13 +50,21 @@ public struct ScrapFormatter {
     /// service) on its own line, ending with exactly one newline. Blank
     /// chunks leave the text unchanged.
     public static func append(chunk: String, to text: String) -> String {
-        let normalised = chunk.replacingOccurrences(of: "\r\n", with: "\n")
-        guard normalised.contains(where: { !$0.isWhitespace }) else { return text }
-        var body = Substring(normalised)
-        while body.last == "\n" { body = body.dropLast() }
+        let body = self.body(of: chunk)
+        guard !body.isEmpty else { return text }
         var result = text
         if !result.isEmpty, !result.hasSuffix("\n") { result += "\n" }
         return result + body + "\n"
+    }
+
+    /// What `append(chunk:)` adds before its final newline: CRLF normalised,
+    /// trailing newlines dropped; empty for a blank chunk.
+    public static func body(of chunk: String) -> String {
+        let normalised = chunk.replacingOccurrences(of: "\r\n", with: "\n")
+        guard normalised.contains(where: { !$0.isWhitespace }) else { return "" }
+        var body = Substring(normalised)
+        while body.last == "\n" { body = body.dropLast() }
+        return String(body)
     }
 
     private mutating func append(separator: String, to text: String) -> (text: String, cursor: Int) {
