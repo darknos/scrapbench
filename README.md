@@ -5,6 +5,8 @@ file, a floating editor with syntax highlighting, a timestamped separator
 per session. Press the hotkey, paste, split, fix that long command line,
 jot the thought, press `Esc` — saved and hidden.
 
+![Hotkey, type, Esc: three scraps, each under its own timestamp](docs/demo.gif)
+
 ## Build
 
 Requires Xcode 27 / Swift 6 and `rsvg-convert` (`brew install librsvg`) for the

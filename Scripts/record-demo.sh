@@ -23,18 +23,24 @@ set -- $frame
 x=$(( $1 - 24 )); y=$(( $2 - 24 )); w=$(( $3 + 48 )); h=$(( $4 + 48 ))
 "$driver" esc sleep:1
 
-screencapture -v -x -V 24 -R"$x,$y,$w,$h" "$work/demo.mov" &
+"$driver" "backdrop:$x,$y,$w,$h" &
+backdrop=$!
+sleep 0.8
+screencapture -v -x -V 34 -R"$x,$y,$w,$h" "$work/demo.mov" &
 rec=$!
-sleep 1.5
+sleep 1
+start=$(date +%s)
 "$driver" open sleep:1.6 \
     "type:deploy notes: rotate the api key before friday" sleep:1.2 esc sleep:1.8 \
     open sleep:1.6 \
     "type:\`\`\`sh\nkubectl rollout restart deploy/api -n prod\n\`\`\`" sleep:1.4 esc sleep:1.8 \
     open sleep:1.6 \
     "type:- [ ] tell ops about the restart" sleep:1.2 esc sleep:1.5
+length=$(( $(date +%s) - start + 2 ))
 wait "$rec"
+kill "$backdrop"
 
-ffmpeg -loglevel error -y -i "$work/demo.mov" -vf "fps=15,scale=800:-1:flags=lanczos" "$work/frame%04d.png"
+ffmpeg -loglevel error -y -t "$length" -i "$work/demo.mov" -vf "fps=15,scale=800:-1:flags=lanczos" "$work/frame%04d.png"
 gifski --fps 15 --quality 85 -o "$out" "$work"/frame*.png
 rm -rf "$work"
 echo "wrote $out"

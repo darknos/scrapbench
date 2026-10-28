@@ -104,6 +104,9 @@ Two targets with different language modes (see `Package.swift`):
 
 - `Resources/Info.plist` is copied verbatim into the bundle by the Makefile; `LSUIElement` keeps
   the app out of the Dock. Bundle id is `org.nosenko.Scrapbench`.
+- `docs/demo.gif` is recorded by `Scripts/record-demo.sh` (drives the built app with
+  `Scripts/demo-driver.swift`, needs `gifski`, `ffmpeg` and accessibility access for the terminal).
+  Place the panel first; the script captures it where it is and restores the file path afterwards.
 - Icons are SVGs in `Resources/Icon/`; `make app` renders them with `Scripts/make-icons.sh`
   (needs `rsvg-convert` from `brew install librsvg`) into `build/icons/` and copies the `.icns`
   and the menu bar template PNGs into the bundle. Edit the SVGs, never the rendered files.
