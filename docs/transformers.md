@@ -1,7 +1,8 @@
 # Script transformers
 
 A script transformer is an executable file in the transformers folder. It reads
-the text on stdin and writes the result to stdout. Scrapbench lists it in the
+the text on stdin and writes the result to stdout, the way a `cgi-bin` script
+did in 1996, minus the `Content-Type` header. Scrapbench lists it in the
 `⌘K` palette next to the built-ins and replaces the scrap with what the script
 printed.
 
