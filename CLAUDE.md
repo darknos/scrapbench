@@ -70,9 +70,12 @@ Two targets with different language modes (see `Package.swift`):
     saves on close. All save errors surface in `BannerView` inside the panel.
   - `TransformController` resolves the target (selection, else the current scrap, selected in
     place), applies a transformer through `EditorTextView.replace` (one undo step) and reports
-    `TransformError` with `BannerView.flash` (auto-hides, unlike save banners). `CommandPalette`
-    is a borderless non-activating child panel; it closes on `resignKey`, so anything that
-    steals key focus (including a person pressing keys elsewhere) dismisses it.
+    `TransformError` with `BannerView.flash` (auto-hides, unlike save banners). The palette is a
+    `PaletteView` inside the panel driven by `PaletteController` (rows come from Core's
+    `PaletteRows`: `Recent` first, last-used wins ties); `BenchPanel.sendEvent` closes it on a
+    click outside, `resignKey` on focus loss. `HeaderView` holds the file name, save status and
+    the Transform button; `PaletteController` must be created after the header is in the view
+    tree, or its constraints throw and the panel never shows.
   - `BenchPanel` is a non-activating floating `NSPanel`, so the previous app keeps its menu bar.
     Because of that, `MainMenu` builds a never-shown main menu purely so `⌘C/V/X/A/Z/F` reach the
     text view. `⌘N` and `⌘S` are handled in `EditorTextView.keyDown` by `keyCode` (45 and 1) so

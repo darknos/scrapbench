@@ -1,6 +1,6 @@
 # Header and in-panel palette
 
-Status: design, 2026-10-28. Supersedes the "Palette" section of
+Status: implemented 2026-10-28. Deviation: on open the status shows the file's modification time, not the open time. Supersedes the "Palette" section of
 `2026-10-27-transformers-design.md` and extends the `BenchPanel` entry in
 `2026-10-26-daily-notes-design.md`. Everything about transformers themselves
 (target, interface, built-ins, applying, errors) stays as specified there.

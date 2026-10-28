@@ -12,7 +12,7 @@ enum HelpText {
     - `⌘N` new timestamped scrap at the end
     - `⌘S` save now (autosave runs 2 s after you stop typing)
     - `⌘⌥A` select the current scrap (text between separators)
-    - `⌘K` transform the selection or the current scrap
+    - `⌘K` transform the selection or the current scrap; `⌘K` again applies the last one
     - `⌘⇧K` repeat the last transformer
     - `⌘F` find, `⌘G` / `⇧⌘G` next / previous match
     - `⌘Z` / `⇧⌘Z` undo / redo
@@ -40,7 +40,8 @@ enum HelpText {
 
     ## Transformers
 
-    `⌘K` opens a palette over the selection, or over the current scrap when
+    The header shows the file and whether it is saved. `⌘K` or its button
+    opens a palette over the selection, or over the current scrap when
     nothing is selected. Only transformers that apply to that text are
     listed; type to filter, `Enter` applies as one undo step, `Esc` closes.
 

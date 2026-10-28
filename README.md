@@ -46,7 +46,7 @@ to `<name>.conflict-<timestamp>.md` next to it instead.
 | `⌘N` | new timestamped scrap at the end |
 | `⌘S` | save now (autosave runs 2 s after typing anyway) |
 | `⌘⌥A` | select the current scrap (text between separators) |
-| `⌘K` | transform the selection or the current scrap (palette) |
+| `⌘K` | transform the selection or the current scrap (palette; the header button does the same; `⌘K` again applies the last one) |
 | `⌘⇧K` | repeat the last transformer |
 | `⌘F` | find |
 | `⌘,` | settings |
@@ -59,7 +59,7 @@ Launching with `--open` shows the panel immediately (handy for testing).
 
 ## Transformers
 
-`⌘K` opens a palette over the selection, or over the current scrap when
+`⌘K` opens a palette under the header over the selection, or over the current scrap when
 nothing is selected. It lists only the transformers that apply to that text,
 with fuzzy search; `Enter` replaces the text in one undo step. Built-ins:
 
