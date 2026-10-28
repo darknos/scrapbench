@@ -33,6 +33,7 @@ final class Settings: ObservableObject {
     @Published var fileURL: URL { didSet { defaults.set(fileURL.path, forKey: "filePath") } }
     @Published var fontName: String { didSet { defaults.set(fontName, forKey: "fontName") } }
     @Published var fontSize: Double { didSet { defaults.set(fontSize, forKey: "fontSize") } }
+    @Published var wordWrap: Bool { didSet { defaults.set(wordWrap, forKey: "wordWrap") } }
     @Published var appearance: Appearance {
         didSet {
             defaults.set(appearance.rawValue, forKey: "appearance")
@@ -48,6 +49,7 @@ final class Settings: ObservableObject {
         let size = defaults.double(forKey: "fontSize")
         fontSize = size > 0 ? size : 14
         appearance = defaults.string(forKey: "appearance").flatMap(Appearance.init) ?? .system
+        wordWrap = defaults.object(forKey: "wordWrap") as? Bool ?? true
     }
 
     func applyAppearance() {

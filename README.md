@@ -46,6 +46,7 @@ to `<name>.conflict-<timestamp>.md` next to it instead.
 | `⌘N` | new timestamped scrap at the end |
 | `⌘S` | save now (autosave runs 2 s after typing anyway) |
 | `⌘⌥A` | select the current scrap (text between separators) |
+| `⌘⌥W` | word wrap on or off (the `Wrap` button in the header does the same) |
 | `⌘K` | transform the selection or the current scrap (palette; the header button does the same; `⌘K` again applies the last one) |
 | `⌘⇧K` | repeat the last transformer |
 | `⌘F` | find |

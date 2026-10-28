@@ -98,6 +98,8 @@ for arg in args {
             CGEvent(mouseEventSource: source, mouseType: type, mouseCursorPosition: p, mouseButton: button)?.post(tap: .cgSessionEventTap)
             usleep(40_000)
         }
+    case let s where s.hasPrefix("cmd-opt:"):
+        post(usKeys[Character(String(s.dropFirst(8)))] ?? 0, flags: [.maskCommand, .maskAlternate])
     case let s where s.hasPrefix("cmd:"):
         post(usKeys[Character(String(s.dropFirst(4)))] ?? 0, flags: .maskCommand)
     case let s where s.hasPrefix("clip:"):

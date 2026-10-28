@@ -27,9 +27,11 @@ design lost are restored: the last applied transformer is always on top, and
   after a successful save, `editing` while there are unsaved edits, `read-only`
   when the load failed. `SessionController` pushes these; the header holds no
   logic.
-- Right: the transformer control, a capsule button `Transform  ⌘K`. Clicking
-  it does what `⌘K` does. While the palette is open the button draws as
-  pressed.
+- Right: a `Wrap` toggle button (pressed = word wrap on; `⌘⌥W` in the
+  editor flips the same `wordWrap` default, which survives relaunches; off
+  means an unbounded text container and a horizontal scroller) and the
+  transformer control, a capsule button `Transform  ⌘K`. Clicking it does
+  what `⌘K` does. While the palette is open the button draws as pressed.
 - Fonts are monospace, emphasis by weight and colour only (brand rule).
 - `minSize` grows by the header height. The editor's `bottomPadding` and
   `centerEnd` are unaffected: they work on the scroll view, which does not

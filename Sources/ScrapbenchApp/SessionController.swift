@@ -15,6 +15,7 @@ final class SessionController: NSObject, NSTextViewDelegate {
     private var saveBlocked = false
     private var closing = false
     private var fontObserver: AnyCancellable?
+    private var wrapObserver: AnyCancellable?
     private(set) var transform: TransformController!
 
     private var editor: EditorTextView { panel.editor }
@@ -25,6 +26,15 @@ final class SessionController: NSObject, NSTextViewDelegate {
         super.init()
         transform = TransformController(editor: editor, banner: panel.banner, palette: panel.palette, header: panel.header)
         panel.header.onTransform = { [weak self] in self?.transform.openPalette() }
+        editor.onToggleWrap = { [weak self] in self?.settings.wordWrap.toggle() }
+        panel.header.onToggleWrap = { [weak self] in self?.settings.wordWrap.toggle() }
+        wrapObserver = settings.$wordWrap
+            .receive(on: RunLoop.main)
+            .sink { [weak self] wrap in
+                guard let self else { return }
+                self.editor.wrapsLines = wrap
+                self.panel.header.isWrapOn = wrap
+            }
         editor.delegate = self
         editor.onEscape = { [weak self] in self?.close() }
         editor.onNewScrap = { [weak self] in self?.newScrap() }

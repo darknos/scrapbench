@@ -11,6 +11,36 @@ final class EditorTextView: NSTextView {
     var onKeyDown: () -> Void = {}
     var onTransform: () -> Void = {}
     var onRepeatTransform: () -> Void = {}
+    var onToggleWrap: () -> Void = {}
+
+    /// Off: the container is unbounded and the scroll view scrolls sideways;
+    /// on: the container follows the view width, as a plain text view does.
+    var wrapsLines = true {
+        didSet {
+            guard wrapsLines != oldValue, let container = textContainer, let scroll = enclosingScrollView else { return }
+            let huge = CGFloat.greatestFiniteMagnitude
+            if wrapsLines {
+                container.widthTracksTextView = true
+                isHorizontallyResizable = false
+                autoresizingMask = [.width]
+                scroll.hasHorizontalScroller = false
+                let width = scroll.contentView.bounds.width
+                container.size = NSSize(width: width - 2 * textContainerInset.width, height: huge)
+                setFrameSize(NSSize(width: width, height: frame.height))
+            } else {
+                container.widthTracksTextView = false
+                container.size = NSSize(width: huge, height: huge)
+                isHorizontallyResizable = true
+                maxSize = NSSize(width: huge, height: huge)
+                autoresizingMask = []
+                scroll.hasHorizontalScroller = true
+            }
+            textLayoutManager?.textViewportLayoutController.layoutViewport()
+            needsLayout = true
+            needsDisplay = true
+            scrollRangeToVisible(selectedRange())
+        }
+    }
     private(set) var highlight: HighlightCoordinator!
     /// True from open until the first interaction: the end of the document is
     /// kept centred through layout changes that happen after the first show.
@@ -44,9 +74,13 @@ final class EditorTextView: NSTextView {
             origin.y = rect.maxY - visible.height
         } else if rect.minY < visible.minY {
             origin.y = rect.minY
-        } else {
-            return false
         }
+        if rect.maxX > visible.maxX {
+            origin.x = rect.maxX - visible.width + Self.sidePadding
+        } else if rect.minX < visible.minX {
+            origin.x = max(0, rect.minX - Self.sidePadding)
+        }
+        if origin == visible.origin { return false }
         clip.scroll(to: clip.constrainBoundsRect(NSRect(origin: origin, size: visible.size)).origin)
         scroll.reflectScrolledClipView(clip)
         return true
@@ -176,8 +210,8 @@ final class EditorTextView: NSTextView {
                 return true
             }
             guard var r = union else { continue }
-            r.origin.x = 0
-            r.size.width = bounds.width
+            r.origin.x = visibleRect.minX
+            r.size.width = visibleRect.width
             r.origin.y += origin.y
             r.insetBy(dx: 0, dy: -2).fill()
         }
@@ -206,6 +240,10 @@ final class EditorTextView: NSTextView {
         }
         if mods == [.command, .option], event.keyCode == 0 || event.charactersIgnoringModifiers == "a" {
             selectScrap()
+            return
+        }
+        if mods == [.command, .option], event.keyCode == 13 || event.charactersIgnoringModifiers == "w" {
+            onToggleWrap()
             return
         }
         super.keyDown(with: event)

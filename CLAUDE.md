@@ -94,6 +94,9 @@ Two targets with different language modes (see `Package.swift`):
       switches the scroller style (and thus the text width) only after the first display.
     - `drawBackground` paints full-width code block backgrounds from the coordinator's
       `CodeBlockMap`; `TokenKind.codeBlockBackground` itself maps to no attributes.
+    - `wrapsLines` switches the text container between tracking the view width and an unbounded
+      width with a horizontal scroller; `scrollToVisible` also scrolls sideways and `drawBackground`
+      paints code block backgrounds over `visibleRect`, not `bounds`, so both modes look right.
     - `replaceTail(with:)` applies a whole-document replacement as a minimal undoable edit so
       `⌘N` does not reload or re-layout the file.
   - `HighlightCoordinator` is an `NSTextStorageDelegate` that colours lazily: only the viewport

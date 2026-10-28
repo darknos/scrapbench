@@ -19,10 +19,16 @@ final class HeaderView: NSView {
         set { button.state = newValue ? .on : .off }
     }
     var onTransform: () -> Void = {}
+    var isWrapOn: Bool {
+        get { wrapButton.state == .on }
+        set { wrapButton.state = newValue ? .on : .off }
+    }
+    var onToggleWrap: () -> Void = {}
 
     private let nameLabel = NSTextField(labelWithString: "")
     private let statusLabel = NSTextField(labelWithString: "")
     private let button = NSButton(title: "Transform  ⌘K", target: nil, action: nil)
+    private let wrapButton = NSButton(title: "Wrap", target: nil, action: nil)
 
     init() {
         super.init(frame: .zero)
@@ -39,6 +45,13 @@ final class HeaderView: NSView {
         button.setButtonType(.pushOnPushOff)
         button.target = self
         button.action = #selector(transformTapped)
+        wrapButton.bezelStyle = .rounded
+        wrapButton.controlSize = .regular
+        wrapButton.font = .monospacedSystemFont(ofSize: 12, weight: .regular)
+        wrapButton.setButtonType(.pushOnPushOff)
+        wrapButton.toolTip = "Word wrap  ⌘⌥W"
+        wrapButton.target = self
+        wrapButton.action = #selector(wrapTapped)
 
         let labels = NSStackView(views: [nameLabel, statusLabel])
         labels.orientation = .vertical
@@ -46,7 +59,7 @@ final class HeaderView: NSView {
         labels.spacing = 1
         let spacer = NSView()
         spacer.setContentHuggingPriority(.init(1), for: .horizontal)
-        let row = NSStackView(views: [labels, spacer, button])
+        let row = NSStackView(views: [labels, spacer, wrapButton, button])
         row.orientation = .horizontal
         row.alignment = .centerY
         row.edgeInsets = NSEdgeInsets(top: 0, left: Self.leadingInset, bottom: 0, right: 16)
@@ -67,6 +80,12 @@ final class HeaderView: NSView {
     /// Whether `view` (from a hit test) is the Transform button or part of it.
     func isTransformControl(_ view: NSView?) -> Bool {
         view?.isDescendant(of: button) == true
+    }
+
+    @objc private func wrapTapped() {
+        // The button toggled itself; the setting is the source of truth and sets it back.
+        wrapButton.state = wrapButton.state == .on ? .off : .on
+        onToggleWrap()
     }
 
     @objc private func transformTapped() {
