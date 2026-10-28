@@ -41,7 +41,8 @@ design lost are restored: the last applied transformer is always on top, and
   resolve the target as before (selection, else the current scrap, selected
   in place; empty target → banner `Nothing to transform`, nothing opens).
 - The palette is a `PaletteView` added to the panel's content view, over the
-  editor, anchored to the bottom of the header, horizontally centred, width
+  editor, dropping from the top edge of the panel over the header (VS Code
+style), horizontally centred, width
   60 % of the panel and at least 420 pt. Rounded corners, a hairline border,
   a shadow. It is not a window: no `resignKey` games.
 - Layout: a text field on top (placeholder `Transform…`), a hairline, then

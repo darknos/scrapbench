@@ -31,7 +31,8 @@ final class PaletteController: NSObject, NSTextFieldDelegate, NSTableViewDataSou
         let minimum = view.widthAnchor.constraint(greaterThanOrEqualToConstant: 420)
         minimum.priority = .init(495)
         NSLayoutConstraint.activate([
-            view.topAnchor.constraint(equalTo: header.bottomAnchor, constant: 8),
+            // From the window's top edge, over the header, like the VS Code quick pick.
+            view.topAnchor.constraint(equalTo: host.topAnchor, constant: 8),
             view.centerXAnchor.constraint(equalTo: host.centerXAnchor),
             preferred, minimum,
             view.widthAnchor.constraint(lessThanOrEqualTo: host.widthAnchor, constant: -32),
