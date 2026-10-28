@@ -54,6 +54,7 @@ final class Settings: ObservableObject {
     @Published var fontName: String { didSet { defaults.set(fontName, forKey: "fontName") } }
     @Published var fontSize: Double { didSet { defaults.set(fontSize, forKey: "fontSize") } }
     @Published var wordWrap: Bool { didSet { defaults.set(wordWrap, forKey: "wordWrap") } }
+    @Published var stayOnTop: Bool { didSet { defaults.set(stayOnTop, forKey: "stayOnTop") } }
     @Published var indentUnit: IndentUnit { didSet { defaults.set(indentUnit.rawValue, forKey: "indentUnit") } }
     @Published var appearance: Appearance {
         didSet {
@@ -71,6 +72,7 @@ final class Settings: ObservableObject {
         fontSize = size > 0 ? size : 14
         appearance = defaults.string(forKey: "appearance").flatMap(Appearance.init) ?? .system
         wordWrap = defaults.object(forKey: "wordWrap") as? Bool ?? true
+        stayOnTop = defaults.object(forKey: "stayOnTop") as? Bool ?? true
         indentUnit = defaults.string(forKey: "indentUnit").flatMap(IndentUnit.init) ?? .twoSpaces
     }
 

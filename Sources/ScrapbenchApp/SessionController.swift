@@ -16,6 +16,7 @@ final class SessionController: NSObject, NSTextViewDelegate {
     private var closing = false
     private var fontObserver: AnyCancellable?
     private var wrapObserver: AnyCancellable?
+    private var topObserver: AnyCancellable?
     private(set) var transform: TransformController!
 
     private var editor: EditorTextView { panel.editor }
@@ -28,6 +29,9 @@ final class SessionController: NSObject, NSTextViewDelegate {
         panel.header.onTransform = { [weak self] in self?.transform.openPalette() }
         editor.onToggleWrap = { [weak self] in self?.settings.wordWrap.toggle() }
         panel.header.onToggleWrap = { [weak self] in self?.settings.wordWrap.toggle() }
+        topObserver = settings.$stayOnTop
+            .receive(on: RunLoop.main)
+            .sink { [weak self] in self?.panel.stayOnTop = $0 }
         wrapObserver = settings.$wordWrap
             .receive(on: RunLoop.main)
             .sink { [weak self] wrap in

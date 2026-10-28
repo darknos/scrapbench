@@ -24,7 +24,7 @@ final class BenchPanel: NSPanel {
         titlebarAppearsTransparent = true
         standardWindowButton(.miniaturizeButton)?.isHidden = true
         standardWindowButton(.zoomButton)?.isHidden = true
-        level = .floating
+        stayOnTop = Settings.shared.stayOnTop
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         isMovableByWindowBackground = true
         hidesOnDeactivate = false
@@ -51,6 +51,11 @@ final class BenchPanel: NSPanel {
 
         setFrameAutosaveName("BenchPanel")
         if !setFrameUsingName("BenchPanel") { center() }
+    }
+
+    /// Floating keeps the bench over every window; off, it is an ordinary window that other apps can cover.
+    var stayOnTop: Bool = true {
+        didSet { level = stayOnTop ? .floating : .normal }
     }
 
     override var canBecomeKey: Bool { true }

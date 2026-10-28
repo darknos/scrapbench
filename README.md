@@ -41,6 +41,7 @@ cp -r build/Scrapbench.app /Applications
 | Hotkey | `⌃⌥Space` |
 | Font | Menlo 14 |
 | Appearance | System (light or dark follows macOS) |
+| Stay on top | On (the bench floats over other windows; off makes it an ordinary window) |
 | Indent | 2 spaces (4 spaces or a tab in Settings) |
 | Panel size | 720×480, remembered after resize |
 

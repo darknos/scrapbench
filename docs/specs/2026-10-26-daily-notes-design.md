@@ -27,7 +27,8 @@ In:
 - Autosave while the panel is open, atomic writes, external-change
   detection, daily backups.
 - Settings window: file path, hotkey, launch at login, appearance
-  (system / light / dark), indent unit (2 spaces default, 4 spaces, tab),
+  (system / light / dark), stay on top (default on; off drops the panel to
+  the normal window level), indent unit (2 spaces default, 4 spaces, tab),
   font and size.
 - macOS service "Take to Scrapbench": selected text in any app lands at the
   end of the file on its own line (`ScrapFormatter.append(chunk:to:)`),

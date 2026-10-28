@@ -31,6 +31,7 @@ struct SettingsView: View {
                 if let loginError {
                     Text(loginError).font(.caption).foregroundStyle(.red)
                 }
+                Toggle("Stay on top of other windows", isOn: $settings.stayOnTop)
                 Picker("Appearance", selection: $settings.appearance) {
                     ForEach(Appearance.allCases, id: \.self) { Text($0.label).tag($0) }
                 }

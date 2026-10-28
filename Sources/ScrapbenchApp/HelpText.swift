@@ -86,6 +86,7 @@ enum HelpText {
 
     File: ~/Documents/scrapbench.md, changeable in Settings.
     Appearance follows macOS; Settings can pin it to light or dark.
+    The bench floats over other windows; turn "Stay on top" off in Settings to let them cover it.
     Backups: ~/Library/Application Support/Scrapbench/backups/, one per day, 7 kept.
     If the file changed on disk while the panel was open, your text is written
     to <name>.conflict-<timestamp>.md next to it instead of overwriting.
