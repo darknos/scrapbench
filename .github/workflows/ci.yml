@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: xcode-27
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Swift build
+        uses: actions/cache@v4
+        with:
+          path: .build
+          key: swiftpm-${{ runner.os }}-${{ hashFiles('Package.resolved') }}-${{ hashFiles('Sources/**', 'Tests/**') }}
+          restore-keys: |
+            swiftpm-${{ runner.os }}-${{ hashFiles('Package.resolved') }}-
+            swiftpm-${{ runner.os }}-
+
+      - name: Install librsvg
+        run: brew install librsvg
+
+      - name: Toolchain
+        run: swift --version
+
+      - name: Test
+        run: make test
+
+      - name: Build app
+        run: make app
+
+      - name: Upload app
+        uses: actions/upload-artifact@v4
+        with:
+          name: Scrapbench-${{ github.sha }}
+          path: build/Scrapbench.app
+          retention-days: 7
