@@ -9,12 +9,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         Settings.shared.applyAppearance()
-        NSApp.mainMenu = MainMenu.build(settings: #selector(openSettings), help: #selector(openHelp),
-                                        transform: #selector(openTransformPalette),
+        NSApp.mainMenu = MainMenu.build(about: #selector(openAbout), settings: #selector(openSettings),
+                                        help: #selector(openHelp), transform: #selector(openTransformPalette),
                                         repeatTransform: #selector(repeatTransform), target: self)
         session = SessionController()
-        statusItem = StatusItemController(open: #selector(openBench), settings: #selector(openSettings),
-                                          help: #selector(openHelp), target: self)
+        statusItem = StatusItemController(open: #selector(openBench), about: #selector(openAbout),
+                                          settings: #selector(openSettings), help: #selector(openHelp), target: self)
         hotkey = HotkeyController { [weak self] in self?.session.toggle() }
         NSApp.servicesProvider = self
         if CommandLine.arguments.contains("--open") { session.open() }
@@ -44,6 +44,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if helpWindow == nil { helpWindow = HelpWindowController() }
         helpWindow?.showWindow(nil)
         NSApp.activate(ignoringOtherApps: true)
+    }
+
+    @objc func openAbout() {
+        NSApp.activate(ignoringOtherApps: true)
+        NSApp.orderFrontStandardAboutPanel(options: [.credits: AboutCredits.text])
     }
 
     @objc func openSettings() {

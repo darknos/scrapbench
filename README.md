@@ -86,6 +86,11 @@ The service appears once the app has been launched from `/Applications`.
 
 Design: `docs/superpowers/specs/2026-10-26-daily-notes-design.md`.
 
+## Author
+
+Sergey Nosenko, `sergey@nosenko.org`, [github.com/darknos](https://github.com/darknos).
+Contributions: see `CONTRIBUTING.md`. Security reports: see `SECURITY.md`.
+
 ## License
 
 MIT, see `LICENSE`.
