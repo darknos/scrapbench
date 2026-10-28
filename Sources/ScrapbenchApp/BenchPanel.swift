@@ -60,10 +60,12 @@ final class BenchPanel: NSPanel {
         onClose()
     }
 
-    /// A click outside the open palette closes it and goes no further.
+    /// A click outside the open palette closes it and then lands where it was aimed,
+    /// except on the Transform button, whose action would reopen the palette.
     override func sendEvent(_ event: NSEvent) {
         if event.type == .leftMouseDown || event.type == .rightMouseDown,
-           palette.handleMouseDown(at: event.locationInWindow) {
+           palette.handleMouseDown(at: event.locationInWindow),
+           header.isTransformControl(contentView?.superview?.hitTest(event.locationInWindow)) {
             return
         }
         super.sendEvent(event)

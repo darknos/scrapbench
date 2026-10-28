@@ -1,15 +1,18 @@
 import AppKit
 import ScrapbenchCore
 
-/// A one-line field that reports ⌘K instead of letting the menu take it.
+/// A one-line field that reports ⌘K instead of letting the menu take it,
+/// and keeps ⌘Z from reaching the editor behind the palette.
 final class PaletteField: NSTextField {
     var onCommandK: () -> Void = {}
 
     override func performKeyEquivalent(with event: NSEvent) -> Bool {
-        if event.modifierFlags.intersection(.deviceIndependentFlagsMask) == .command, event.keyCode == 40 {
+        let mods = event.modifierFlags.intersection([.command, .shift, .option, .control])
+        if mods == .command, event.keyCode == 40 {
             onCommandK()
             return true
         }
+        if mods.contains(.command), event.keyCode == 6, stringValue.isEmpty { return true }
         return super.performKeyEquivalent(with: event)
     }
 }
@@ -28,10 +31,8 @@ final class PaletteView: NSView {
     init() {
         super.init(frame: .zero)
         wantsLayer = true
-        layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor
         layer?.cornerRadius = 10
         layer?.borderWidth = 1
-        layer?.borderColor = Theme.default.faint.cgColor
         let shadow = NSShadow()
         shadow.shadowBlurRadius = 12
         shadow.shadowOffset = NSSize(width: 0, height: -4)
@@ -82,6 +83,14 @@ final class PaletteView: NSView {
     }
 
     required init?(coder: NSCoder) { fatalError() }
+
+    /// Colours are resolved per appearance here, so a light/dark switch repaints the long-lived view.
+    override var wantsUpdateLayer: Bool { true }
+
+    override func updateLayer() {
+        layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor
+        layer?.borderColor = Theme.default.faint.cgColor
+    }
 
     func setVisibleRows(_ count: Int) {
         let rows = CGFloat(min(max(count, 1), Self.maxVisibleRows))

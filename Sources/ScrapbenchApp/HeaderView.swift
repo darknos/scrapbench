@@ -64,6 +64,11 @@ final class HeaderView: NSView {
 
     required init?(coder: NSCoder) { fatalError() }
 
+    /// Whether `view` (from a hit test) is the Transform button or part of it.
+    func isTransformControl(_ view: NSView?) -> Bool {
+        view?.isDescendant(of: button) == true
+    }
+
     @objc private func transformTapped() {
         // The button toggles itself; the controller decides the real state.
         button.state = .off

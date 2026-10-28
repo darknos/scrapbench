@@ -102,6 +102,8 @@ for arg in args {
     case "up": post(126)
     case "down": post(125)
     case "home": post(115)
+    case "tab": post(48)
+    case "shift-tab": post(48, flags: .maskShift)
     case let s where s.hasPrefix("type:"): type(String(s.dropFirst(5)).replacingOccurrences(of: "\\n", with: "\n"))
     case let s where s.hasPrefix("sleep:"): usleep(UInt32((Double(s.dropFirst(6)) ?? 1) * 1_000_000))
     case let s where s.hasPrefix("backdrop:"): break

@@ -25,10 +25,11 @@ final class PaletteController: NSObject, NSTextFieldDelegate, NSTableViewDataSou
         view.isHidden = true
         view.translatesAutoresizingMaskIntoConstraints = false
         host.addSubview(view, positioned: .above, relativeTo: nil)
+        // Both below NSLayoutPriorityWindowSizeStayPut (500), or the hidden palette widens the window to 700 pt.
         let preferred = view.widthAnchor.constraint(equalTo: host.widthAnchor, multiplier: 0.6)
-        preferred.priority = .defaultHigh
+        preferred.priority = .init(490)
         let minimum = view.widthAnchor.constraint(greaterThanOrEqualToConstant: 420)
-        minimum.priority = .init(800)
+        minimum.priority = .init(495)
         NSLayoutConstraint.activate([
             view.topAnchor.constraint(equalTo: header.bottomAnchor, constant: 8),
             view.centerXAnchor.constraint(equalTo: host.centerXAnchor),
@@ -62,7 +63,7 @@ final class PaletteController: NSObject, NSTextFieldDelegate, NSTableViewDataSou
         onClose()
     }
 
-    /// Closes on a click outside the palette; the click itself is swallowed.
+    /// Closes on a click outside the palette and returns true; the click then goes on to its target.
     func handleMouseDown(at pointInWindow: NSPoint) -> Bool {
         guard isOpen, let host else { return false }
         let point = host.convert(pointInWindow, from: nil)
@@ -122,8 +123,8 @@ final class PaletteController: NSObject, NSTextFieldDelegate, NSTableViewDataSou
 
     func control(_ control: NSControl, textView: NSTextView, doCommandBy commandSelector: Selector) -> Bool {
         switch commandSelector {
-        case #selector(NSResponder.moveUp(_:)): moveSelection(by: -1)
-        case #selector(NSResponder.moveDown(_:)): moveSelection(by: 1)
+        case #selector(NSResponder.moveUp(_:)), #selector(NSResponder.insertBacktab(_:)): moveSelection(by: -1)
+        case #selector(NSResponder.moveDown(_:)), #selector(NSResponder.insertTab(_:)): moveSelection(by: 1)
         case #selector(NSResponder.insertNewline(_:)): pickSelected()
         case #selector(NSResponder.cancelOperation(_:)): close(); onCancel()
         default: return false

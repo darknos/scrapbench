@@ -65,6 +65,7 @@ final class TransformController {
 
     /// The last transformer again if it applies to the current target, else the palette.
     func repeatLast() {
+        palette.close()
         guard let transformer = last,
               let target = editor.transformTarget(), transformer.canApply(to: target.text) else {
             openPalette()
