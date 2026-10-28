@@ -1,5 +1,6 @@
 // Drives the app for the README demo: layout-independent typing through CGEvent.
-// Usage: demo-driver backdrop:x,y,w,h (stays up until killed)  |  demo-driver open | type:<text> | esc | sleep:<seconds> ...
+// Usage: demo-driver backdrop:x,y,w,h (stays up until killed)
+//        demo-driver open | esc | enter | cmd:<key> | clip:<text> | type:<text> | sleep:<s> ... type:<text> | esc | sleep:<seconds> ...
 import AppKit
 import Foundation
 
@@ -84,6 +85,12 @@ for arg in args {
         let p = Process(); p.executableURL = URL(fileURLWithPath: "/usr/bin/osascript"); p.arguments = ["-e", script]
         try? p.run(); p.waitUntilExit()
     case "esc": post(53)
+    case "enter": post(36)
+    case let s where s.hasPrefix("cmd:"):
+        post(usKeys[Character(String(s.dropFirst(4)))] ?? 0, flags: .maskCommand)
+    case let s where s.hasPrefix("clip:"):
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(String(s.dropFirst(5)).replacingOccurrences(of: "\\n", with: "\n"), forType: .string)
     case "up": post(126)
     case "down": post(125)
     case "home": post(115)
