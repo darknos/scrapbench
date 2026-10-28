@@ -11,10 +11,14 @@ final class ScriptRunner {
     private let scrapFile: URL
     private let process = Process()
     private let queue = DispatchQueue(label: "org.nosenko.Scrapbench.script")
+    private var stdoutPipe = Pipe()
+    private var stderrPipe = Pipe()
     private var stdout = Data()
     private var stderr = Data()
     private var timedOut = false
     private var cancelled = false
+    private var finished = false
+    private var completion: ((Result<String, TransformError>) -> Void)?
     private var timeoutWork: DispatchWorkItem?
 
     init(script: ScriptTransformer, input: String, scrapFile: URL) {
@@ -24,6 +28,7 @@ final class ScriptRunner {
     }
 
     func start(completion: @escaping (Result<String, TransformError>) -> Void) {
+        self.completion = completion
         let home = FileManager.default.homeDirectoryForCurrentUser.path
         process.executableURL = script.url
         process.currentDirectoryURL = URL(fileURLWithPath: home)
@@ -34,7 +39,7 @@ final class ScriptRunner {
             "PATH": "\(home)/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin",
             "SCRAPBENCH_FILE": scrapFile.path,
         ]
-        let stdinPipe = Pipe(), stdoutPipe = Pipe(), stderrPipe = Pipe()
+        let stdinPipe = Pipe()
         process.standardInput = stdinPipe
         process.standardOutput = stdoutPipe
         process.standardError = stderrPipe
@@ -52,9 +57,7 @@ final class ScriptRunner {
 
         process.terminationHandler = { [weak self] process in
             drained.notify(queue: .main) {
-                guard let self, !self.cancelled else { return }
-                self.timeoutWork?.cancel()
-                completion(self.verdict(status: process.terminationStatus))
+                self?.finish(status: process.terminationStatus)
             }
         }
 
@@ -63,19 +66,23 @@ final class ScriptRunner {
         } catch {
             stdoutPipe.fileHandleForReading.readabilityHandler = nil
             stderrPipe.fileHandleForReading.readabilityHandler = nil
-            DispatchQueue.main.async { completion(.failure(TransformError(error.localizedDescription))) }
+            DispatchQueue.main.async { [self] in deliver(.failure(TransformError(error.localizedDescription))) }
             return
         }
 
+        // A script that exits without reading its input would otherwise kill
+        // the app with SIGPIPE on the blocked write.
+        let writer = stdinPipe.fileHandleForWriting
+        _ = fcntl(writer.fileDescriptor, F_SETNOSIGPIPE, 1)
         let data = Data(input.utf8)
         DispatchQueue.global(qos: .userInitiated).async {
-            try? stdinPipe.fileHandleForWriting.write(contentsOf: data)
-            try? stdinPipe.fileHandleForWriting.close()
+            try? writer.write(contentsOf: data)
+            try? writer.close()
         }
 
         let work = DispatchWorkItem { [weak self] in
-            guard let self, self.process.isRunning else { return }
-            self.timedOut = true
+            guard let self, !self.finished else { return }
+            self.timedOut = self.process.isRunning
             self.terminate()
         }
         timeoutWork = work
@@ -89,12 +96,18 @@ final class ScriptRunner {
         terminate()
     }
 
+    /// Signals the script's whole process group (Foundation gives the child
+    /// its own), so children it spawned go too. After the grace period the
+    /// group gets SIGKILL and the verdict is delivered without waiting for
+    /// pipes a stray child may still hold.
     private func terminate() {
-        guard process.isRunning else { return }
-        process.terminate()
-        let process = self.process
-        DispatchQueue.main.asyncAfter(deadline: .now() + Self.killGrace) {
-            if process.isRunning { kill(process.processIdentifier, SIGKILL) }
+        let pgid = process.processIdentifier
+        guard pgid > 0 else { return }
+        kill(-pgid, SIGTERM)
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.killGrace) { [weak self] in
+            kill(-pgid, SIGKILL)
+            guard let self, !self.finished else { return }
+            self.finish(status: self.process.isRunning ? -1 : self.process.terminationStatus)
         }
     }
 
@@ -110,11 +123,29 @@ final class ScriptRunner {
         }
     }
 
+    private func finish(status: Int32) {
+        guard !finished else { return }
+        finished = true
+        timeoutWork?.cancel()
+        stdoutPipe.fileHandleForReading.readabilityHandler = nil
+        stderrPipe.fileHandleForReading.readabilityHandler = nil
+        try? stdoutPipe.fileHandleForReading.close()
+        try? stderrPipe.fileHandleForReading.close()
+        queue.sync {}  // appends queued before EOF land before the verdict reads the buffers
+        deliver(verdict(status: status))
+    }
+
+    private func deliver(_ result: Result<String, TransformError>) {
+        guard !cancelled, let completion else { return }
+        self.completion = nil
+        completion(result)
+    }
+
     private func verdict(status: Int32) -> Result<String, TransformError> {
         if timedOut { return .failure(TransformError("timed out after \(script.timeout) s")) }
         if status != 0 {
             let line = String(decoding: stderr, as: UTF8.self)
-                .split(separator: "\n").map { $0.trimmingCharacters(in: .whitespaces) }
+                .split(whereSeparator: \.isNewline).map { $0.trimmingCharacters(in: .whitespaces) }
                 .first { !$0.isEmpty }
             return .failure(TransformError(line ?? "exit code \(status)"))
         }

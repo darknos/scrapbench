@@ -74,6 +74,19 @@ import Testing
         #expect(ScriptRegistry.scan(directory: dir).transformers.map(\.id) == ["script.z", "script.a", "script.b"])
     }
 
+    @Test func symlinkToAScriptIsListedUnderTheLinkName() throws {
+        defer { cleanup() }
+        let outside = dir.appendingPathComponent("real-improve.sh")
+        try write("real-improve.sh", "#!/bin/sh\n# @name Improve\ncat\n")
+        let links = dir.appendingPathComponent("links")
+        try FileManager.default.createDirectory(at: links, withIntermediateDirectories: true)
+        try FileManager.default.createSymbolicLink(at: links.appendingPathComponent("improve.sh"), withDestinationURL: outside)
+        let (scripts, problems) = ScriptRegistry.scan(directory: links)
+        #expect(problems.isEmpty)
+        #expect(scripts.map(\.id) == ["script.improve"])
+        #expect(scripts.first?.url.lastPathComponent == "improve.sh")
+    }
+
     @Test func missingDirectoryYieldsNothing() {
         cleanup()
         let (scripts, problems) = ScriptRegistry.scan(directory: dir.appendingPathComponent("nope"))

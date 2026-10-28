@@ -15,7 +15,8 @@ Settings has an `Open transformers folder` button.
 3. Press `⌘K` in the bench. The script is in the list.
 
 The folder is read every time the palette opens, so there is nothing to
-restart or reload.
+restart or reload. Symlinks work: keep the scripts in your dotfiles and link
+them into the folder; the link's name gives the id.
 
 ## The contract
 
@@ -30,7 +31,8 @@ restart or reload.
 - **stderr** on success is ignored, so warnings from a tool do not get in the way.
 - **Timeout**: `30` seconds by default, `@timeout` sets another. A script that
   runs over gets `SIGTERM`, then `SIGKILL` two seconds later, and the banner
-  says `timed out after N s`.
+  says `timed out after N s`. Signals go to the script's process group, so
+  the tools it started go with it.
 - **Environment**: `HOME`, `USER`, `LANG=en_US.UTF-8`,
   `PATH=~/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin` and
   `SCRAPBENCH_FILE`, the path of the scrap file. The working directory is your

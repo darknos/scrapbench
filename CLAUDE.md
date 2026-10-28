@@ -60,13 +60,13 @@ Two targets with different language modes (see `Package.swift`):
     the trailing-newline and CRLF rules. `Calculator` wraps the `Expression` package (the only
     dependency of Core); JSON pretty/minify is a token-level reformatter so key order survives.
     Spec: `docs/specs/2026-10-27-transformers-design.md`.
-  - `Highlighting/` — `SyntaxHighlighter` returns `Token`s (UTF-16 `NSRange` + `TokenKind`) for a
-    range. `MarkdownHighlighter` runs Markdown-lite rules outside fenced blocks and delegates
-    fenced blocks to a `CodeGrammar` picked by language (`Grammars/`).
     `Transformers/Scripts/`: `ScriptHeader` parses the `# @key value` lines, `ScriptRegistry.scan`
     lists executable files in a folder as `ScriptTransformer`s (`canApply` is always true;
     `apply` throws, the app runs the file), `PendingTransform` keeps the target range in step
-    with edits while a script runs. Spec: `docs/specs/2026-10-28-script-transformers-design.md`. `CodeBlockMap` locates
+    with edits while a script runs. Spec: `docs/specs/2026-10-28-script-transformers-design.md`.
+  - `Highlighting/` — `SyntaxHighlighter` returns `Token`s (UTF-16 `NSRange` + `TokenKind`) for a
+    range. `MarkdownHighlighter` runs Markdown-lite rules outside fenced blocks and delegates
+    fenced blocks to a `CodeGrammar` picked by language (`Grammars/`). `CodeBlockMap` locates
     fences with one pass and supports `shifted(after:by:)` so the app can avoid rescanning on
     plain edits. Tokens carry no colours; `TokenKind` → attributes is the app's job.
 

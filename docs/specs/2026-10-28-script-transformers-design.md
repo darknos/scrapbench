@@ -24,7 +24,8 @@ blocking the editor and their result is applied when it arrives.
   creates it on first launch. Settings gets an `Open transformers folder`
   button.
 - Every executable regular file directly in the folder is one transformer.
-  No recursion; names starting with `.` are ignored.
+  No recursion; names starting with `.` are ignored. A symlink counts as the
+  file it points to, under the link's name.
 - The header is read from the first 20 lines. A header line is a comment
   line (`#`, `//` or `--` after optional whitespace) whose first word is
   `@name`, `@group`, `@description` or `@timeout`; the rest of the line,
@@ -81,7 +82,9 @@ there.
   `empty output`. Non-zero exit: error with the first non-blank line of
   stderr, or `exit code N` when stderr is empty. Errors show as
   `<name>: <message>` in the banner and leave the text untouched.
-- Timeout: `SIGTERM`, `SIGKILL` 2 s later, error `timed out after N s`.
+- Timeout: `SIGTERM` to the script's process group, `SIGKILL` 2 s later,
+  error `timed out after N s`. The verdict is delivered then even if a stray
+  child still holds the pipes.
 - Environment: `HOME`, `USER`, `LANG=en_US.UTF-8`,
   `PATH=~/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin`
   (`~` expanded), `SCRAPBENCH_FILE` with the path of the scrap file. Working
@@ -137,8 +140,8 @@ Core (`ScrapbenchCore/Transformers/Scripts/`, pure Foundation, unit-tested):
 - `ScriptRegistry.scan(directory: URL) -> (transformers: [ScriptTransformer], problems: [ScriptProblem])`
   on `FileManager`, ordering as above.
 - `TransformerGroup` becomes `struct TransformerGroup: Hashable { let name }`
-  with static constants for the built-in groups and a `builtInOrder` list;
-  `PaletteRows` groups by `name`.
+  with static constants for the built-in groups; `PaletteRows` groups by
+  `name`. Built-in order is the registry order, as before.
 - `TransformerRegistry.applicable(to:extra:)` takes the scripts as an extra
   list after the built-ins; `transformer(id:)` likewise.
 

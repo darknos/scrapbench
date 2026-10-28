@@ -3,7 +3,8 @@ import Foundation
 public enum ScriptRegistry {
     /// Every executable regular file directly in `directory` with a valid
     /// header, ordered by group name then file name; the rest as problems.
-    /// Dot files, folders and a missing directory are silently skipped.
+    /// Dot files, folders and a missing directory are silently skipped; a
+    /// symlink counts as the file it points to, under the link's name.
     public static func scan(directory: URL) -> (transformers: [ScriptTransformer], problems: [ScriptProblem]) {
         let keys: [URLResourceKey] = [.isRegularFileKey, .isExecutableKey]
         guard let entries = try? FileManager.default.contentsOfDirectory(
@@ -15,7 +16,8 @@ public enum ScriptRegistry {
         var seen: Set<String> = []
         for url in entries.sorted(by: { Array($0.lastPathComponent.utf8).lexicographicallyPrecedes(Array($1.lastPathComponent.utf8)) }) {
             let file = url.lastPathComponent
-            guard !file.hasPrefix("."), let values = try? url.resourceValues(forKeys: Set(keys)),
+            guard !file.hasPrefix("."),
+                  let values = try? url.resolvingSymlinksInPath().resourceValues(forKeys: Set(keys)),
                   values.isRegularFile == true else { continue }
             guard values.isExecutable == true else {
                 problems.append(ScriptProblem(file: file, reason: "not executable"))
