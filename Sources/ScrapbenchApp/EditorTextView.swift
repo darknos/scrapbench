@@ -250,13 +250,21 @@ final class EditorTextView: NSTextView {
     }
 
     /// Tab with a selection indents the selected lines; Shift-Tab outdents the
-    /// current or selected lines. A bare Tab still inserts a tab.
+    /// current or selected lines. A bare Tab inserts one indent unit from Settings.
     override func insertTab(_ sender: Any?) {
-        if selectedRange().length > 0 { shiftLines(by: Indentation.indent) } else { super.insertTab(sender) }
+        let unit = Settings.shared.indentUnit.text
+        if selectedRange().length > 0 {
+            shiftLines { Indentation.indent($0, unit: unit) }
+        } else if unit == "\t" {
+            super.insertTab(sender)
+        } else {
+            insertText(unit, replacementRange: selectedRange())
+        }
     }
 
     override func insertBacktab(_ sender: Any?) {
-        shiftLines(by: Indentation.outdent)
+        let unit = Settings.shared.indentUnit.text
+        shiftLines { Indentation.outdent($0, unit: unit) }
     }
 
     private func shiftLines(by transform: (String) -> String) {

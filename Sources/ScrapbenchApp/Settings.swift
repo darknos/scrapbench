@@ -20,6 +20,26 @@ enum Appearance: String, CaseIterable {
     }
 }
 
+enum IndentUnit: String, CaseIterable {
+    case twoSpaces, fourSpaces, tab
+
+    var label: String {
+        switch self {
+        case .twoSpaces: return "2 spaces"
+        case .fourSpaces: return "4 spaces"
+        case .tab: return "Tab"
+        }
+    }
+
+    var text: String {
+        switch self {
+        case .twoSpaces: return "  "
+        case .fourSpaces: return "    "
+        case .tab: return "\t"
+        }
+    }
+}
+
 final class Settings: ObservableObject {
     static let shared = Settings()
 
@@ -34,6 +54,7 @@ final class Settings: ObservableObject {
     @Published var fontName: String { didSet { defaults.set(fontName, forKey: "fontName") } }
     @Published var fontSize: Double { didSet { defaults.set(fontSize, forKey: "fontSize") } }
     @Published var wordWrap: Bool { didSet { defaults.set(wordWrap, forKey: "wordWrap") } }
+    @Published var indentUnit: IndentUnit { didSet { defaults.set(indentUnit.rawValue, forKey: "indentUnit") } }
     @Published var appearance: Appearance {
         didSet {
             defaults.set(appearance.rawValue, forKey: "appearance")
@@ -50,6 +71,7 @@ final class Settings: ObservableObject {
         fontSize = size > 0 ? size : 14
         appearance = defaults.string(forKey: "appearance").flatMap(Appearance.init) ?? .system
         wordWrap = defaults.object(forKey: "wordWrap") as? Bool ?? true
+        indentUnit = defaults.string(forKey: "indentUnit").flatMap(IndentUnit.init) ?? .twoSpaces
     }
 
     func applyAppearance() {

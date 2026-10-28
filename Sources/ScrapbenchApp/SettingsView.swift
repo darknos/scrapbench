@@ -36,6 +36,12 @@ struct SettingsView: View {
                 }
                 .pickerStyle(.segmented)
             }
+            Section("Editor") {
+                Picker("Indent", selection: $settings.indentUnit) {
+                    ForEach(IndentUnit.allCases, id: \.self) { Text($0.label).tag($0) }
+                }
+                .pickerStyle(.segmented)
+            }
             Section("Font") {
                 Picker("Family", selection: $settings.fontName) {
                     ForEach(monospacedFonts, id: \.self) { Text($0).tag($0) }

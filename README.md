@@ -29,6 +29,7 @@ cp -r build/Scrapbench.app /Applications
 | Hotkey | `⌃⌥Space` |
 | Font | Menlo 14 |
 | Appearance | System (light or dark follows macOS) |
+| Indent | 2 spaces (4 spaces or a tab in Settings) |
 | Panel size | 720×480, remembered after resize |
 
 Backups: first open of each day copies the file to
@@ -46,7 +47,7 @@ to `<name>.conflict-<timestamp>.md` next to it instead.
 | `⌘N` | new timestamped scrap at the end |
 | `⌘S` | save now (autosave runs 2 s after typing anyway) |
 | `⌘⌥A` | select the current scrap (text between separators) |
-| `Tab`, `⇧Tab` | indent or outdent the selected lines (`⇧Tab` works on the current line too) |
+| `Tab`, `⇧Tab` | indent or outdent the selected lines by one unit (`⇧Tab` works on the current line too); a bare `Tab` inserts one unit |
 | `⌘⌥W` | word wrap on or off (the ↵ button in the header does the same) |
 | `⌘K` | transform the selection or the current scrap (palette; the header button does the same; `⌘K` again applies the last one) |
 | `⌘⇧K` | repeat the last transformer |
