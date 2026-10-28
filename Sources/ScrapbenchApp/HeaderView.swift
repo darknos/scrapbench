@@ -16,19 +16,19 @@ final class HeaderView: NSView {
     }
     var isPaletteOpen: Bool {
         get { button.state == .on }
-        set { button.state = newValue ? .on : .off }
+        set { Self.set(button, on: newValue) }
     }
     var onTransform: () -> Void = {}
     var isWrapOn: Bool {
         get { wrapButton.state == .on }
-        set { wrapButton.state = newValue ? .on : .off }
+        set { Self.set(wrapButton, on: newValue) }
     }
     var onToggleWrap: () -> Void = {}
 
     private let nameLabel = NSTextField(labelWithString: "")
     private let statusLabel = NSTextField(labelWithString: "")
     private let button = NSButton(title: "Transform  ⌘K", target: nil, action: nil)
-    private let wrapButton = NSButton(title: "Wrap", target: nil, action: nil)
+    private let wrapButton = NSButton(title: "", target: nil, action: nil)
 
     init() {
         super.init(frame: .zero)
@@ -47,7 +47,8 @@ final class HeaderView: NSView {
         button.action = #selector(transformTapped)
         wrapButton.bezelStyle = .rounded
         wrapButton.controlSize = .regular
-        wrapButton.font = .monospacedSystemFont(ofSize: 12, weight: .regular)
+        wrapButton.image = NSImage(systemSymbolName: "arrow.turn.down.left", accessibilityDescription: "Word wrap")
+        wrapButton.imagePosition = .imageOnly
         wrapButton.setButtonType(.pushOnPushOff)
         wrapButton.toolTip = "Word wrap  ⌘⌥W"
         wrapButton.target = self
@@ -82,15 +83,22 @@ final class HeaderView: NSView {
         view?.isDescendant(of: button) == true
     }
 
+    /// On-state in the app's accent instead of the system accent colour.
+    private static func set(_ button: NSButton, on: Bool) {
+        button.state = on ? .on : .off
+        button.bezelColor = on ? Theme.default.accent : nil
+        button.contentTintColor = on ? .white : nil
+    }
+
     @objc private func wrapTapped() {
         // The button toggled itself; the setting is the source of truth and sets it back.
-        wrapButton.state = wrapButton.state == .on ? .off : .on
+        Self.set(wrapButton, on: wrapButton.state != .on)
         onToggleWrap()
     }
 
     @objc private func transformTapped() {
         // The button toggles itself; the controller decides the real state.
-        button.state = .off
+        Self.set(button, on: false)
         onTransform()
     }
 }

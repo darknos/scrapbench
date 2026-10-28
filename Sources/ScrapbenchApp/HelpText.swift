@@ -12,7 +12,7 @@ enum HelpText {
     - `⌘N` new timestamped scrap at the end
     - `⌘S` save now (autosave runs 2 s after you stop typing)
     - `⌘⌥A` select the current scrap (text between separators)
-    - `⌘⌥W` word wrap on or off; the `Wrap` button in the header shows the state
+    - `⌘⌥W` word wrap on or off; the ↵ button in the header shows the state
     - `⌘K` transform the selection or the current scrap; `⌘K` again applies the last one
     - `⌘⇧K` repeat the last transformer
     - `⌘F` find, `⌘G` / `⇧⌘G` next / previous match

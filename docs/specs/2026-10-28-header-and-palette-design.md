@@ -27,7 +27,7 @@ design lost are restored: the last applied transformer is always on top, and
   after a successful save, `editing` while there are unsaved edits, `read-only`
   when the load failed. `SessionController` pushes these; the header holds no
   logic.
-- Right: a `Wrap` toggle button (pressed = word wrap on; `⌘⌥W` in the
+- Right: a word wrap toggle button (↵ symbol; pressed = on, drawn in the app accent; `⌘⌥W` in the
   editor flips the same `wordWrap` default, which survives relaunches; off
   means an unbounded text container and a horizontal scroller) and the
   transformer control, a capsule button `Transform  ⌘K`. Clicking it does
