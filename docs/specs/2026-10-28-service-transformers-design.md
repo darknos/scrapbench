@@ -1,6 +1,6 @@
 # Service transformers
 
-Status: designed 2026-10-28. Extends `2026-10-28-script-transformers-design.md`:
+Status: implemented 2026-10-28. Extends `2026-10-28-script-transformers-design.md`:
 the script file, its header and the way the app runs it stay as specified
 there.
 
@@ -104,6 +104,17 @@ folder name and the old folder is removed), removes every `remove` bundle,
 then calls `NSUpdateDynamicServices()` so the Services menu picks the change
 up without a logout. `Remove all services` deletes every bundle with our
 key and calls `NSUpdateDynamicServices()` too.
+
+Two scripts whose bundle names match (`@name` compared case-insensitively,
+as APFS compares folder names) would share one bundle: the first in palette
+order is registered, the rest are `conflicts` and shown as a red caption,
+`same @name in a.sh, b.sh; only a.sh is registered`. A bundle at the target
+path whose `Info.plist` has no `ScrapbenchScriptID` is never replaced; the
+press fails with `<bundle>: a workflow with this name exists and is not
+from Scrapbench`. Two installed bundles with the same id (a Finder
+duplicate) keep the first and remove the rest. New bundles are written
+before old folders are removed, so a rename that takes a name another
+rename just vacated does not lose a service.
 
 A keyboard shortcut assigned in System Settings is tied to the service's
 title, so a `refresh` with the same `@name` keeps it; a renamed script needs

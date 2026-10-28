@@ -93,7 +93,10 @@ line under the folder button says what `Register services` would do
 into `~/Library/Services/` (`Scrapbench - <name>.workflow`), rewrites the
 ones already there and removes ours for scripts that no longer have
 `@service`. `Remove all services` deletes every bundle Scrapbench wrote and
-nothing else; workflows you made yourself are never touched.
+nothing else; workflows you made yourself are never touched, and a workflow
+of yours that happens to have the same name as ours is reported, not
+replaced. Two scripts with the same `@name` would share a bundle: the first
+in palette order is registered and the other is reported under the buttons.
 
 A shortcut is assigned in System Settings → Keyboard → Keyboard Shortcuts →
 Services → Text. It is tied to the service's title, so renaming a script

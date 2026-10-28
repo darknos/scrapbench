@@ -70,8 +70,8 @@ struct SettingsView: View {
                            action: removeAllServices)
                         .disabled(installedServices == 0)
                 }
-                if let serviceError {
-                    Text(serviceError).font(.caption).foregroundStyle(.red)
+                if let problem = serviceError ?? servicePlan.problem {
+                    Text(problem).font(.caption).foregroundStyle(.red)
                 }
             }
             Section("Font") {

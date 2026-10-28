@@ -42,3 +42,33 @@ import Testing
         #expect(ServicePlan(scripts: [], installed: []).summary == "")
     }
 }
+
+@Suite struct ServicePlanConflictTests {
+    func script(_ stem: String, name: String) -> ScriptTransformer {
+        ScriptTransformer(header: ScriptHeader(name: name, service: true), url: URL(fileURLWithPath: "/t/\(stem).sh"))
+    }
+    func installed(_ stem: String, folder: String = "x") -> InstalledService {
+        InstalledService(id: "script.\(stem)", url: URL(fileURLWithPath: "/s/\(folder).workflow"))
+    }
+
+    @Test func sameBundleNameKeepsTheFirstAndReportsTheRest() {
+        let a = script("a", name: "Fix"), b = script("b", name: "fix"), c = script("c", name: "Fix")
+        let plan = ServicePlan(scripts: [a, b, c], installed: [])
+        #expect(plan.add == [a])
+        #expect(plan.conflicts == [b, c])
+        #expect(plan.summary == "add 1")
+        #expect(plan.problem == "same @name in a.sh, b.sh, c.sh; only a.sh is registered")
+    }
+
+    @Test func noConflictsNoProblem() {
+        #expect(ServicePlan(scripts: [script("a", name: "A")], installed: []).problem == nil)
+    }
+
+    @Test func extraBundlesWithTheSameIDAreRemoved() {
+        let a = script("a", name: "A")
+        let first = installed("a", folder: "one"), second = installed("a", folder: "two")
+        let plan = ServicePlan(scripts: [a], installed: [first, second])
+        #expect(plan.refresh.map(\.installed) == [first])
+        #expect(plan.remove == [second])
+    }
+}
