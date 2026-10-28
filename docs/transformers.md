@@ -7,7 +7,7 @@ did in 1996, minus the `Content-Type` header. Scrapbench lists it in the
 printed.
 
 The folder is `~/Library/Application Support/Scrapbench/Transformers/`.
-Settings has an `Open transformers folder` button.
+Settings → Transformers has an `Open folder` button.
 
 ## Five minutes
 
