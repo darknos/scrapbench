@@ -25,6 +25,11 @@ final class TransformController {
         palette.onPick = { [weak self] in self?.run($0) }
         palette.onPickLast = { [weak self] in if let last = self?.last { self?.run(last) } }
         palette.onClose = { [weak header] in header?.isPaletteOpen = false }
+        palette.onCancel = { [weak editor] in
+            guard let editor else { return }
+            let selection = editor.selectedRange()
+            editor.setSelectedRange(NSRange(location: selection.upperBound, length: 0))
+        }
     }
 
     func openPalette() {

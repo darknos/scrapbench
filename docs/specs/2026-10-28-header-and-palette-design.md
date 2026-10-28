@@ -59,12 +59,14 @@ design lost are restored: the last applied transformer is always on top, and
     the last applied transformer wins. No group headers.
   - Nothing applies: one disabled row `No transformers apply to this text`.
 - Keys while the field has focus: `↑`/`↓` move the highlight, `Enter` and a
-  click apply the highlighted row, `Esc` closes without applying. `⌘K`
+  click apply the highlighted row, `Esc` closes without applying and
+  collapses the selection to a caret at its end, so typing continues after
+  the scrap instead of replacing it. `⌘K`
   applies the last transformer if it is in the list, else does nothing.
   `⌘⇧K` is unchanged (repeat without opening). Typing filters.
 - Closing (any reason) hides the view, restores the header button and
-  returns first responder to the editor; the selection made for the target
-  stays. The palette also closes when the user clicks anywhere in the panel
+  returns first responder to the editor; except after `Esc`, the selection
+  made for the target stays. The palette also closes when the user clicks anywhere in the panel
   outside it, and when the panel loses key status.
 - The last applied transformer id is stored in `UserDefaults`
   (`lastTransformer`), so it survives relaunches. It is set only after a

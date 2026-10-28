@@ -6,6 +6,8 @@ final class PaletteController: NSObject, NSTextFieldDelegate, NSTableViewDataSou
     var onPick: (any Transformer) -> Void = { _ in }
     var onPickLast: () -> Void = {}
     var onClose: () -> Void = {}
+    /// Esc only: the pick was abandoned, not just closed.
+    var onCancel: () -> Void = {}
     private(set) var isOpen = false
 
     private let view = PaletteView()
@@ -123,7 +125,7 @@ final class PaletteController: NSObject, NSTextFieldDelegate, NSTableViewDataSou
         case #selector(NSResponder.moveUp(_:)): moveSelection(by: -1)
         case #selector(NSResponder.moveDown(_:)): moveSelection(by: 1)
         case #selector(NSResponder.insertNewline(_:)): pickSelected()
-        case #selector(NSResponder.cancelOperation(_:)): close()
+        case #selector(NSResponder.cancelOperation(_:)): close(); onCancel()
         default: return false
         }
         return true
