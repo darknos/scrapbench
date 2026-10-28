@@ -56,6 +56,7 @@ final class SessionController: NSObject, NSTextViewDelegate {
         guard !panel.isVisible else { return }
         store = ScrapStore(fileURL: settings.fileURL, supportDirectory: Settings.supportDirectory)
         panel.title = settings.fileURL.lastPathComponent
+        panel.header.fileName = settings.fileURL.lastPathComponent
         editor.font = settings.font
         saveBlocked = false
         editor.isEditable = true
@@ -69,6 +70,7 @@ final class SessionController: NSObject, NSTextViewDelegate {
             editor.load("")
             editor.isEditable = false
             saveBlocked = true
+            panel.header.status = "read-only"
             panel.show()
             panel.banner.show(error.localizedDescription, buttonTitle: "Open Settings") {
                 NSApp.sendAction(#selector(AppDelegate.openSettings), to: nil, from: nil)
@@ -76,6 +78,8 @@ final class SessionController: NSObject, NSTextViewDelegate {
             return
         }
 
+        let modified = (try? settings.fileURL.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
+        panel.header.status = Self.savedStatus(at: modified)
         formatter = ScrapFormatter()
         let opened = formatter.open(text: snapshot.text, date: Date())
         editor.load(opened.text)
@@ -129,6 +133,7 @@ final class SessionController: NSObject, NSTextViewDelegate {
         do {
             snapshot = try store.save(text: content, expecting: snapshot)
             panel.banner.isHidden = true
+            panel.header.status = Self.savedStatus(at: Date())
             return true
         } catch ScrapStoreError.externalChange(let conflictURL) {
             saveBlocked = true
@@ -156,8 +161,20 @@ final class SessionController: NSObject, NSTextViewDelegate {
         persist(text)
     }
 
+    private static let clock: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "HH:mm"
+        return f
+    }()
+
+    private static func savedStatus(at date: Date?) -> String {
+        date.map { "saved " + clock.string(from: $0) } ?? "saved"
+    }
+
     private func scheduleAutosave() {
         guard !saveBlocked else { return }
+        panel.header.status = "editing"
         autosave?.invalidate()
         autosave = Timer.scheduledTimer(withTimeInterval: Self.autosaveDelay, repeats: false) { [weak self] _ in
             guard let self, self.panel.isVisible else { return }
