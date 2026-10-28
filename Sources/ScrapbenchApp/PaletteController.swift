@@ -36,6 +36,7 @@ final class PaletteController: NSObject, NSTextFieldDelegate, NSTableViewDataSou
             view.centerXAnchor.constraint(equalTo: host.centerXAnchor),
             preferred, minimum,
             view.widthAnchor.constraint(lessThanOrEqualTo: host.widthAnchor, constant: -32),
+            view.bottomAnchor.constraint(lessThanOrEqualTo: host.bottomAnchor, constant: -8),
         ])
         view.field.delegate = self
         view.field.onCommandK = { [weak self] in self?.pickLast() }
@@ -77,7 +78,7 @@ final class PaletteController: NSObject, NSTextFieldDelegate, NSTableViewDataSou
 
     private func reload() {
         rows = PaletteRows.build(items: items, query: view.field.stringValue, lastID: lastID)
-        view.setVisibleRows(rows.count)
+        view.prepare(visibleRows: rows.count)
         view.table.reloadData()
         if let first = itemRows.first { select(first) }
     }

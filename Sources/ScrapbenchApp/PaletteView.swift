@@ -21,7 +21,6 @@ final class PaletteField: NSTextField {
 final class PaletteView: NSView {
     static let rowHeight: CGFloat = 24
     static let maxVisibleRows = 8
-    private static let fieldBlock: CGFloat = 12 + 20 + 10
     private static let listInsets: CGFloat = 4 + 8
 
     let field = PaletteField()
@@ -66,11 +65,12 @@ final class PaletteView: NSView {
             addSubview(view)
         }
         heightConstraint = heightAnchor.constraint(equalToConstant: 100)
+        // Below NSLayoutPriorityWindowSizeStayPut, so a tall list shrinks instead of growing the window.
+        heightConstraint.priority = .init(490)
         NSLayoutConstraint.activate([
             field.topAnchor.constraint(equalTo: topAnchor, constant: 12),
             field.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             field.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-            field.heightAnchor.constraint(equalToConstant: 20),
             rule.topAnchor.constraint(equalTo: field.bottomAnchor, constant: 10),
             rule.leadingAnchor.constraint(equalTo: leadingAnchor),
             rule.trailingAnchor.constraint(equalTo: trailingAnchor),
@@ -92,9 +92,12 @@ final class PaletteView: NSView {
         layer?.borderColor = Theme.default.faint.cgColor
     }
 
-    func setVisibleRows(_ count: Int) {
+    /// Takes the current editor font so the field follows Settings, then sizes to the rows.
+    func prepare(visibleRows count: Int) {
+        field.font = Settings.shared.font
         let rows = CGFloat(min(max(count, 1), Self.maxVisibleRows))
-        heightConstraint.constant = Self.fieldBlock + 1 + Self.listInsets + rows * Self.rowHeight
+        let fieldBlock = 12 + field.intrinsicContentSize.height + 10
+        heightConstraint.constant = fieldBlock + 1 + Self.listInsets + rows * Self.rowHeight
     }
 
     // MARK: - Cells
@@ -150,6 +153,25 @@ final class PaletteView: NSView {
 }
 
 final class PaletteRowView: NSTableRowView {
+    private var hovered = false { didSet { needsDisplay = true } }
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        trackingAreas.forEach(removeTrackingArea)
+        addTrackingArea(NSTrackingArea(rect: bounds, options: [.mouseEnteredAndExited, .activeAlways, .inVisibleRect],
+                                       owner: self, userInfo: nil))
+    }
+
+    override func mouseEntered(with event: NSEvent) { hovered = true }
+    override func mouseExited(with event: NSEvent) { hovered = false }
+
+    override func drawBackground(in dirtyRect: NSRect) {
+        super.drawBackground(in: dirtyRect)
+        guard hovered, !isSelected else { return }
+        Theme.default.faint.withAlphaComponent(0.35).setFill()
+        NSBezierPath(roundedRect: bounds, xRadius: 5, yRadius: 5).fill()
+    }
+
     override func drawSelection(in dirtyRect: NSRect) {
         Theme.default.accent.withAlphaComponent(0.15).setFill()
         NSBezierPath(roundedRect: bounds, xRadius: 5, yRadius: 5).fill()

@@ -86,6 +86,10 @@ for arg in args {
         try? p.run(); p.waitUntilExit()
     case "esc": post(53)
     case "enter": post(36)
+    case let s where s.hasPrefix("move:"):
+        let v = s.dropFirst(5).split(separator: ",").compactMap { Double($0) }
+        guard v.count == 2 else { break }
+        CGEvent(mouseEventSource: source, mouseType: .mouseMoved, mouseCursorPosition: CGPoint(x: v[0], y: v[1]), mouseButton: .left)?.post(tap: .cgSessionEventTap)
     case let s where s.hasPrefix("click:"):
         let v = s.dropFirst(6).split(separator: ",").compactMap { Double($0) }
         guard v.count == 2 else { break }
