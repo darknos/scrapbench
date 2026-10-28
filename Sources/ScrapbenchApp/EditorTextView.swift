@@ -249,6 +249,25 @@ final class EditorTextView: NSTextView {
         super.keyDown(with: event)
     }
 
+    /// Tab with a selection indents the selected lines; Shift-Tab outdents the
+    /// current or selected lines. A bare Tab still inserts a tab.
+    override func insertTab(_ sender: Any?) {
+        if selectedRange().length > 0 { shiftLines(by: Indentation.indent) } else { super.insertTab(sender) }
+    }
+
+    override func insertBacktab(_ sender: Any?) {
+        shiftLines(by: Indentation.outdent)
+    }
+
+    private func shiftLines(by transform: (String) -> String) {
+        let storage = string as NSString
+        var lines = storage.lineRange(for: selectedRange())
+        if lines.length > 0, storage.character(at: lines.upperBound - 1) == 0x0A { lines.length -= 1 }
+        let result = transform(storage.substring(with: lines))
+        guard result != storage.substring(with: lines) else { return }
+        replace(lines, with: result)
+    }
+
     override func paste(_ sender: Any?) {
         pasteAsPlainText(sender)
     }
