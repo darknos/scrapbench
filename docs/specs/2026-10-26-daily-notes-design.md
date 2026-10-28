@@ -26,7 +26,8 @@ In:
 - Plain-text paste only.
 - Autosave while the panel is open, atomic writes, external-change
   detection, daily backups.
-- Settings window: file path, hotkey, launch at login, font and size.
+- Settings window: file path, hotkey, launch at login, appearance
+  (system / light / dark), font and size.
 - macOS service "Take to Scrapbench": selected text in any app lands at the
   end of the file on its own line (`ScrapFormatter.append(chunk:to:)`),
   opening the panel first if it is hidden. Users can give the service a
@@ -176,8 +177,9 @@ protocol SyntaxHighlighter { func tokens(in text: String,
   "Open Settings" button; read-only editor when load failed.
 - **`SettingsView`** (SwiftUI in an `NSWindow`): file path with "Choose…"
   (NSOpenPanel), `KeyboardShortcuts.Recorder`, Launch at login toggle
-  (`SMAppService.mainApp`), font family/size. Stored in `UserDefaults`
-  via `Settings` observable.
+  (`SMAppService.mainApp`), appearance picker (sets `NSApp.appearance`;
+  `Theme` colours are dynamic so nothing is re-highlighted), font
+  family/size. Stored in `UserDefaults` via `Settings` observable.
 
 ## Error handling
 

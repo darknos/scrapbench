@@ -25,6 +25,7 @@ cp -r build/Scrapbench.app /Applications
 | Scrap file | `~/Documents/scrapbench.md` |
 | Hotkey | `⌃⌥Space` |
 | Font | Menlo 14 |
+| Appearance | System (light or dark follows macOS) |
 | Panel size | 720×480, remembered after resize |
 
 Backups: first open of each day copies the file to

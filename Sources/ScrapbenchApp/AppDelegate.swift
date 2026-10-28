@@ -8,6 +8,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var helpWindow: HelpWindowController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        Settings.shared.applyAppearance()
         NSApp.mainMenu = MainMenu.build(settings: #selector(openSettings), help: #selector(openHelp),
                                         transform: #selector(openTransformPalette),
                                         repeatTransform: #selector(repeatTransform), target: self)

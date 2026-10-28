@@ -31,6 +31,10 @@ struct SettingsView: View {
                 if let loginError {
                     Text(loginError).font(.caption).foregroundStyle(.red)
                 }
+                Picker("Appearance", selection: $settings.appearance) {
+                    ForEach(Appearance.allCases, id: \.self) { Text($0.label).tag($0) }
+                }
+                .pickerStyle(.segmented)
             }
             Section("Font") {
                 Picker("Family", selection: $settings.fontName) {

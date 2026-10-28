@@ -6,6 +6,20 @@ extension KeyboardShortcuts.Name {
     static let togglePanel = Self("togglePanel", default: .init(.space, modifiers: [.control, .option]))
 }
 
+enum Appearance: String, CaseIterable {
+    case system, light, dark
+
+    var label: String { rawValue.capitalized }
+
+    var nsAppearance: NSAppearance? {
+        switch self {
+        case .system: return nil
+        case .light: return NSAppearance(named: .aqua)
+        case .dark: return NSAppearance(named: .darkAqua)
+        }
+    }
+}
+
 final class Settings: ObservableObject {
     static let shared = Settings()
 
@@ -19,6 +33,12 @@ final class Settings: ObservableObject {
     @Published var fileURL: URL { didSet { defaults.set(fileURL.path, forKey: "filePath") } }
     @Published var fontName: String { didSet { defaults.set(fontName, forKey: "fontName") } }
     @Published var fontSize: Double { didSet { defaults.set(fontSize, forKey: "fontSize") } }
+    @Published var appearance: Appearance {
+        didSet {
+            defaults.set(appearance.rawValue, forKey: "appearance")
+            applyAppearance()
+        }
+    }
 
     private let defaults = UserDefaults.standard
 
@@ -27,6 +47,11 @@ final class Settings: ObservableObject {
         fontName = defaults.string(forKey: "fontName") ?? "Menlo"
         let size = defaults.double(forKey: "fontSize")
         fontSize = size > 0 ? size : 14
+        appearance = defaults.string(forKey: "appearance").flatMap(Appearance.init) ?? .system
+    }
+
+    func applyAppearance() {
+        NSApp.appearance = appearance.nsAppearance
     }
 
     /// Pseudo family for the system monospaced font, which has no public family name.
