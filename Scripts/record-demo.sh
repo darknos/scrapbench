@@ -50,12 +50,14 @@ x=$(( $1 - 24 )); y=$(( $2 - 24 )); w=$(( $3 + 48 )); h=$(( $4 + 48 ))
 "$driver" "backdrop:$x,$y,$w,$h" &
 backdrop=$!
 sleep 0.8
-screencapture -v -x -V 50 -R"$x,$y,$w,$h" "$work/demo.mov" &
+# The panel is open before the recording starts and the final Esc comes after
+# the cut point, so the GIF has no empty frames at either end.
+"$driver" open sleep:1
+screencapture -v -x -V 75 -R"$x,$y,$w,$h" "$work/demo.mov" &
 rec=$!
 sleep 1
 start=$(date +%s)
 "$driver" \
-    open sleep:1.2 \
     "clip:curl -X POST https://api.example.com/v1/deploys -H 'Authorization: Bearer \$TOKEN' -H 'Content-Type: application/json' -d '{\"service\":\"api\",\"ref\":\"v2.14.0\"}'" \
     "cmd:v" sleep:1 "cmd:k" sleep:0.5 "type:split command" sleep:0.4 enter sleep:1.5 \
     "cmd:n" sleep:0.6 \
@@ -73,9 +75,9 @@ start=$(date +%s)
     "clip:https://example.com/search?q=caf%C3%A9%20au%20lait&lang=en" \
     "cmd:v" sleep:0.8 "cmd:k" sleep:0.5 "type:url dec" sleep:0.4 enter sleep:1.3 \
     "cmd:n" sleep:0.6 \
-    "type:admin:s3cret" sleep:0.4 "cmd:k" sleep:0.5 "type:base64 enc" sleep:0.4 enter sleep:2 \
-    esc sleep:1.6
-length=$(( $(date +%s) - start + 2 ))
+    "type:admin:s3cret" sleep:0.4 "cmd:k" sleep:0.5 "type:base64 enc" sleep:0.4 enter sleep:2
+length=$(( $(date +%s) - start ))
+"$driver" esc
 wait "$rec"
 kill "$backdrop"
 
