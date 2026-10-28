@@ -56,6 +56,10 @@ enum HelpText {
     - Time: Epoch ↔ ISO 8601
     - Math: Calculate (`3+4` → `3+4 = 7`)
 
+    Your own: executable files in `~/Library/Application Support/Scrapbench/Transformers/`
+    (text on stdin, result on stdout, `# @name` on top). They run without
+    blocking the editor; `⌘,` → Open transformers folder.
+
     ## Markdown
 
     Highlighting only; the file stays plain text.

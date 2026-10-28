@@ -101,6 +101,13 @@ with fuzzy search; `Enter` replaces the text in one undo step. Built-ins:
 A transformer that cannot handle the text reports why in the banner and
 leaves the text alone.
 
+Your own transformers are executable files in
+`~/Library/Application Support/Scrapbench/Transformers/`: text on stdin,
+result on stdout, a `# @name` comment at the top. They run without blocking
+the editor, so a script that asks an AI model for a rewrite or a translation
+fits; `Examples/transformers/` has three to copy, two of them through the
+Claude Code CLI. See [docs/transformers.md](docs/transformers.md).
+
 ## Take to Scrapbench
 
 Select text in any app, right-click → Services → **Take to Scrapbench**: the

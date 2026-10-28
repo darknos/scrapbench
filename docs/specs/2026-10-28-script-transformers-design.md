@@ -1,6 +1,6 @@
 # Script transformers
 
-Status: designed 2026-10-28. Extends `2026-10-27-transformers-design.md`
+Status: implemented 2026-10-28. Extends `2026-10-27-transformers-design.md`
 (target, interface, applying, errors stay as specified there) and the palette
 in `2026-10-28-header-and-palette-design.md`.
 

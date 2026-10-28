@@ -38,6 +38,9 @@ is verified by running the app.
   and `/System/Library/CoreServices/pbs -update`. It can be invoked without the UI from a
   small Swift tool calling `NSPerformService("Take to Scrapbench", pasteboard)`.
 
+- Script transformers live in `~/Library/Application Support/Scrapbench/Transformers/`; put a
+  few throwaway scripts there (`sleep 5; tr a-z A-Z`, `exit 3`) to check the asynchronous path.
+
 ## Architecture
 
 Two targets with different language modes (see `Package.swift`):
@@ -59,7 +62,11 @@ Two targets with different language modes (see `Package.swift`):
     Spec: `docs/specs/2026-10-27-transformers-design.md`.
   - `Highlighting/` — `SyntaxHighlighter` returns `Token`s (UTF-16 `NSRange` + `TokenKind`) for a
     range. `MarkdownHighlighter` runs Markdown-lite rules outside fenced blocks and delegates
-    fenced blocks to a `CodeGrammar` picked by language (`Grammars/`). `CodeBlockMap` locates
+    fenced blocks to a `CodeGrammar` picked by language (`Grammars/`).
+    `Transformers/Scripts/`: `ScriptHeader` parses the `# @key value` lines, `ScriptRegistry.scan`
+    lists executable files in a folder as `ScriptTransformer`s (`canApply` is always true;
+    `apply` throws, the app runs the file), `PendingTransform` keeps the target range in step
+    with edits while a script runs. Spec: `docs/specs/2026-10-28-script-transformers-design.md`. `CodeBlockMap` locates
     fences with one pass and supports `shifted(after:by:)` so the app can avoid rescanning on
     plain edits. Tokens carry no colours; `TokenKind` → attributes is the app's job.
 
@@ -70,7 +77,12 @@ Two targets with different language modes (see `Package.swift`):
     saves on close. All save errors surface in `BannerView` inside the panel.
   - `TransformController` resolves the target (selection, else the current scrap, selected in
     place), applies a transformer through `EditorTextView.replace` (one undo step) and reports
-    `TransformError` with `BannerView.flash` (auto-hides, unlike save banners). The palette is a
+    `TransformError` with `BannerView.flash` (auto-hides, unlike save banners). A
+    `ScriptTransformer` goes to `ScriptRunner` (`Process` with a timeout, pipes read through
+    `readabilityHandler`, completion on the main thread) and the result is applied when it
+    arrives: in place if `PendingTransform` says the target is intact, else appended as a new
+    scrap via `SessionController.appendResult`. The app never modifies script files (no
+    `chmod`). The palette is a
     `PaletteView` inside the panel driven by `PaletteController` (rows come from Core's
     `PaletteRows`: `Recent` first, last-used wins ties); `BenchPanel.sendEvent` closes it on a
     click outside, `resignKey` on focus loss. `HeaderView` holds the file name, save status and
