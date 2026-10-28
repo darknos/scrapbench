@@ -4,6 +4,7 @@ import AppKit
 /// app keeps its menu bar and gets focus back when the panel hides.
 final class BenchPanel: NSPanel {
     let editor: EditorTextView
+    let header = HeaderView()
     let banner = BannerView()
     var onClose: () -> Void = {}
     var onFocusLost: () -> Void = {}
@@ -13,11 +14,13 @@ final class BenchPanel: NSPanel {
         self.editor = editor
         super.init(
             contentRect: NSRect(x: 0, y: 0, width: 720, height: 480),
-            styleMask: [.titled, .nonactivatingPanel, .resizable, .closable],
+            styleMask: [.titled, .nonactivatingPanel, .resizable, .closable, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
         title = "Scrapbench"
+        titleVisibility = .hidden
+        titlebarAppearsTransparent = true
         standardWindowButton(.miniaturizeButton)?.isHidden = true
         standardWindowButton(.zoomButton)?.isHidden = true
         level = .floating
@@ -25,11 +28,11 @@ final class BenchPanel: NSPanel {
         isMovableByWindowBackground = true
         hidesOnDeactivate = false
         isReleasedWhenClosed = false
-        minSize = NSSize(width: 400, height: 240)
+        minSize = NSSize(width: 400, height: 240 + HeaderView.height)
         backgroundColor = .windowBackgroundColor
 
         let container = NSView()
-        let stack = NSStackView(views: [banner, scroll])
+        let stack = NSStackView(views: [header, banner, scroll])
         stack.orientation = .vertical
         stack.spacing = 0
         stack.translatesAutoresizingMaskIntoConstraints = false
