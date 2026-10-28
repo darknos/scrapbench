@@ -21,8 +21,8 @@ blocking the editor and their result is applied when it arrives.
 ## Script file
 
 - Folder: `~/Library/Application Support/Scrapbench/Transformers/`. The app
-  creates it on first launch. Settings gets an `Open transformers folder`
-  button.
+  creates it on first launch. Settings gets an `Open folder` button in the
+  Transformers tab.
 - Every executable regular file directly in the folder is one transformer.
   No recursion; names starting with `.` are ignored. A symlink counts as the
   file it points to, under the link's name.

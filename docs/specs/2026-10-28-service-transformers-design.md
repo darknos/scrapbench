@@ -122,7 +122,7 @@ the shortcut assigned again.
 
 ## Settings
 
-The Transformers section gains two rows under `Open transformers folder`:
+Settings is split into General, Editor and Transformers tabs. The Transformers tab has the folder row and a Services section:
 
 - One row: the status line, the `Register` button and the `Remove` button. The line reads
   `Services: add 2, refresh 1, remove 1` (only the non-zero parts; `refresh
