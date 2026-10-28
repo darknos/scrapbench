@@ -15,7 +15,7 @@ final class TransformController {
     }
 
     /// The last applied transformer, if it still exists.
-    var last: (any Transformer)? { lastID.flatMap(TransformerRegistry.transformer(id:)) }
+    var last: (any Transformer)? { lastID.flatMap { TransformerRegistry.transformer(id: $0) } }
 
     init(editor: EditorTextView, banner: BannerView, palette: PaletteController, header: HeaderView) {
         self.editor = editor

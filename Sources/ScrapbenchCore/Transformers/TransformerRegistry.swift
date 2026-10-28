@@ -23,12 +23,13 @@ public enum TransformerRegistry {
         EpochISOTransformer(), CalculateTransformer(),
     ]
 
-    public static func applicable(to text: String) -> [any Transformer] {
+    /// Built-ins first, then `extra` (script transformers), filtered by `canApply`.
+    public static func applicable(to text: String, extra: [any Transformer] = []) -> [any Transformer] {
         let lines = Lines(text)
-        return builtIn.filter { ($0 as? LineAware)?.canApply(lines: lines) ?? $0.canApply(to: text) }
+        return (builtIn + extra).filter { ($0 as? LineAware)?.canApply(lines: lines) ?? $0.canApply(to: text) }
     }
 
-    public static func transformer(id: String) -> (any Transformer)? {
-        builtIn.first { $0.id == id }
+    public static func transformer(id: String, extra: [any Transformer] = []) -> (any Transformer)? {
+        (builtIn + extra).first { $0.id == id }
     }
 }

@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 @testable import ScrapbenchCore
 
@@ -10,6 +11,15 @@ import Testing
         #expect(ids.first == "case.upper")
         #expect(ids.last == "calc.evaluate")
         #expect(ids.firstIndex(of: "json.pretty")! < ids.firstIndex(of: "lines.sort")!)
+    }
+
+    @Test func extrasComeAfterBuiltInsAndResolveByID() {
+        let s = ScriptTransformer(id: "script.x", name: "X", group: .scripts, description: "",
+                                  url: URL(fileURLWithPath: "/x"), timeout: 30)
+        let ids = TransformerRegistry.applicable(to: "abc", extra: [s]).map(\.id)
+        #expect(ids.last == "script.x")
+        #expect(TransformerRegistry.transformer(id: "script.x", extra: [s])?.name == "X")
+        #expect(TransformerRegistry.transformer(id: "script.x") == nil)
     }
 
     @Test func applicableFilters() {
