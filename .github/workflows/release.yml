@@ -73,6 +73,18 @@ jobs:
             "build/Scrapbench-$VERSION.zip" "build/Scrapbench-$VERSION.zip.sha256" \
             --title "Scrapbench $VERSION" --generate-notes --verify-tag
 
+      - name: Update Homebrew tap
+        env:
+          TAP_TOKEN: ${{ secrets.TAP_TOKEN }}
+        run: |
+          if [ -z "$TAP_TOKEN" ]; then echo "TAP_TOKEN not set, skipping the tap"; exit 0; fi
+          sha="$(cut -d' ' -f1 "build/Scrapbench-$VERSION.zip.sha256")"
+          git clone --quiet "https://x-access-token:$TAP_TOKEN@github.com/darknos/homebrew-scrapbench.git" "$RUNNER_TEMP/tap"
+          cd "$RUNNER_TEMP/tap"
+          sed -i '' -e "s/^  version \".*\"/  version \"$VERSION\"/" -e "s/^  sha256 \".*\"/  sha256 \"$sha\"/" Casks/scrapbench.rb
+          git -c user.name=github-actions -c user.email=actions@github.com commit -am "Scrapbench $VERSION" || exit 0
+          git push --quiet
+
       - name: Remove keychain
         if: always()
         run: security delete-keychain "$RUNNER_TEMP/signing.keychain-db" || true

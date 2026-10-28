@@ -7,6 +7,17 @@ jot the thought, press `Esc` — saved and hidden.
 
 ![Paste a command, split it; paste JSON, pretty-print it; epoch, calculator, base64: each scrap under its own timestamp](docs/demo.gif)
 
+## Install
+
+```sh
+brew install darknos/scrapbench/scrapbench
+```
+
+Or download `Scrapbench-<version>.zip` from the
+[latest release](https://github.com/darknos/scrapbench/releases/latest) and drop
+`Scrapbench.app` into `/Applications`. Releases are signed with a Developer ID and
+notarized. macOS 14 or later.
+
 ## Build
 
 Requires Xcode 27 / Swift 6 and `rsvg-convert` (`brew install librsvg`) for the
