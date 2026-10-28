@@ -1,0 +1,22 @@
+name: Feature request
+description: A transformer, a key, a behaviour you miss
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What you are trying to do
+      description: The text you have, what you want it to become, where it goes afterwards.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would help
+      description: A transformer, a setting, a key. Rough is fine.
+    validations:
+      required: true
+  - type: textarea
+    id: workaround
+    attributes:
+      label: How you do it today

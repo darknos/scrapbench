@@ -29,5 +29,6 @@ the app. `CLAUDE.md` describes the architecture and the manual-testing setup.
 
 ## Reporting bugs
 
-Open an issue with macOS version, what you did, what happened and what you
-expected. For security issues see `SECURITY.md`.
+Open an issue; the bug report template asks for the Scrapbench and macOS
+versions, what you did, what happened and what you expected. For security
+issues see `SECURITY.md`, not a public issue.
