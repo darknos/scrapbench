@@ -1,5 +1,6 @@
 import AppKit
 import KeyboardShortcuts
+import ScrapbenchCore
 import ServiceManagement
 import SwiftUI
 
@@ -7,6 +8,10 @@ struct SettingsView: View {
     @ObservedObject var settings = Settings.shared
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     @State private var loginError: String?
+    @State private var servicePlan = ServicePlan(scripts: [], installed: [])
+    @State private var installedServices = 0
+    @State private var serviceError: String?
+    private let installer = ServiceInstaller()
 
     private let monospacedFonts = Settings.monospacedFamilies
 
@@ -50,6 +55,24 @@ struct SettingsView: View {
                     Spacer()
                     Button("Open transformers folder", action: openTransformersFolder)
                 }
+                HStack {
+                    Text(servicePlan.isEmpty ? "No scripts with @service" : "Services: \(servicePlan.summary)")
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Button("Register services", action: registerServices)
+                        .disabled(servicePlan.isEmpty)
+                }
+                HStack {
+                    Text("Scripts with @service work in any app through the Services menu.")
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Button(installedServices > 0 ? "Remove \(installedServices) \(installedServices == 1 ? "service" : "services")" : "Remove all services",
+                           action: removeAllServices)
+                        .disabled(installedServices == 0)
+                }
+                if let serviceError {
+                    Text(serviceError).font(.caption).foregroundStyle(.red)
+                }
             }
             Section("Font") {
                 Picker("Family", selection: $settings.fontName) {
@@ -59,6 +82,11 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
+        .onAppear(perform: refreshServices)
+        .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { note in
+            guard (note.object as? NSWindow)?.title == "Scrapbench Settings" else { return }
+            refreshServices()
+        }
         .frame(width: 440)
         .fixedSize(horizontal: false, vertical: true)
     }
@@ -67,6 +95,31 @@ struct SettingsView: View {
         let url = Settings.transformersDirectory
         try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         NSWorkspace.shared.open(url)
+    }
+
+    private func refreshServices() {
+        servicePlan = installer.plan()
+        installedServices = installer.installed().count
+    }
+
+    private func registerServices() {
+        do {
+            try installer.register(installer.plan())
+            serviceError = nil
+        } catch {
+            serviceError = error.localizedDescription
+        }
+        refreshServices()
+    }
+
+    private func removeAllServices() {
+        do {
+            try installer.removeAll()
+            serviceError = nil
+        } catch {
+            serviceError = error.localizedDescription
+        }
+        refreshServices()
     }
 
     private func chooseFile() {
