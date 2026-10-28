@@ -21,7 +21,6 @@ final class PaletteField: NSTextField {
 final class PaletteView: NSView {
     static let rowHeight: CGFloat = 24
     static let maxVisibleRows = 8
-    private static let listInsets: CGFloat = 4 + 8
 
     let field = PaletteField()
     let table = NSTableView()
@@ -51,6 +50,9 @@ final class PaletteView: NSView {
         table.addTableColumn(column)
         table.headerView = nil
         table.rowHeight = Self.rowHeight
+        // The default (inset) style pads the table by 10 pt above the first
+        // row, which clipped the last row of short lists.
+        table.style = .plain
         table.intercellSpacing = .zero
         table.backgroundColor = .clear
         table.refusesFirstResponder = true
@@ -64,8 +66,11 @@ final class PaletteView: NSView {
             view.translatesAutoresizingMaskIntoConstraints = false
             addSubview(view)
         }
-        heightConstraint = heightAnchor.constraint(equalToConstant: 100)
-        // Below NSLayoutPriorityWindowSizeStayPut, so a tall list shrinks instead of growing the window.
+        // The list height is the only fixed part; the field, the rule and the
+        // insets add their real heights, so no row is ever clipped by a
+        // formula that guesses them. Below NSLayoutPriorityWindowSizeStayPut,
+        // so a tall list shrinks instead of growing the window.
+        heightConstraint = scroll.heightAnchor.constraint(equalToConstant: Self.rowHeight)
         heightConstraint.priority = .init(490)
         NSLayoutConstraint.activate([
             field.topAnchor.constraint(equalTo: topAnchor, constant: 12),
@@ -92,12 +97,11 @@ final class PaletteView: NSView {
         layer?.borderColor = Theme.default.faint.cgColor
     }
 
-    /// Takes the current editor font so the field follows Settings, then sizes to the rows.
+    /// Takes the current editor font so the field follows Settings, then sizes the list to the rows.
     func prepare(visibleRows count: Int) {
         field.font = Settings.shared.font
         let rows = CGFloat(min(max(count, 1), Self.maxVisibleRows))
-        let fieldBlock = 12 + field.intrinsicContentSize.height + 10
-        heightConstraint.constant = fieldBlock + 1 + Self.listInsets + rows * Self.rowHeight
+        heightConstraint.constant = rows * Self.rowHeight
     }
 
     // MARK: - Cells

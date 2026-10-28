@@ -62,18 +62,23 @@ final class EditorTextView: NSTextView {
         NSPoint(x: textContainerInset.width, y: Self.topPadding)
     }
 
-    /// Minimal auto-scroll: the caret stops at the real bottom edge. The
-    /// default keeps extra space below it, so typing after a centred open
-    /// jumps the view before the caret has reached the bottom.
+    /// Lines kept between the caret and the top or bottom edge when auto-scrolling.
+    static let scrollMarginLines: CGFloat = 3
+
+    /// Near-minimal auto-scroll: the caret stops a few lines short of the
+    /// edge, not where AppKit's default would put it (which keeps so much
+    /// space below that typing after a centred open jumps the view before
+    /// the caret has reached the bottom).
     override func scrollToVisible(_ rect: NSRect) -> Bool {
         guard let scroll = enclosingScrollView else { return super.scrollToVisible(rect) }
         let clip = scroll.contentView
         let visible = clip.bounds
+        let margin = min(rect.height * Self.scrollMarginLines, visible.height / 3)
         var origin = visible.origin
-        if rect.maxY > visible.maxY {
-            origin.y = rect.maxY - visible.height
-        } else if rect.minY < visible.minY {
-            origin.y = rect.minY
+        if rect.maxY + margin > visible.maxY {
+            origin.y = rect.maxY + margin - visible.height
+        } else if rect.minY - margin < visible.minY {
+            origin.y = rect.minY - margin
         }
         if rect.maxX > visible.maxX {
             origin.x = rect.maxX - visible.width + Self.sidePadding
