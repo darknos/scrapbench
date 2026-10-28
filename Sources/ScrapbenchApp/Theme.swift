@@ -9,7 +9,7 @@ struct Theme {
     let text = dynamic(light: 0x1F1F1F, dark: 0xE6E6E3)
     let muted = dynamic(light: 0x8A8A86, dark: 0x8B8B88)
     let faint = dynamic(light: 0xC9C9C5, dark: 0x4A4A48)
-    let accent = dynamic(light: 0xC96442, dark: 0xD97757)   // Claude terracotta
+    let accent = dynamic(light: 0xC98A1E, dark: 0xE0A030)   // amber, docs/brand.md
     let link = dynamic(light: 0x2A62CC, dark: 0x7FA7F2)
     let codeBackground = dynamic(light: 0xF0F0EE, dark: 0x2B2B29)
     let codeBlockBackground = dynamic(light: 0xF5F5F3, dark: 0x262624)
