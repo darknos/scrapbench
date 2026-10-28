@@ -16,15 +16,17 @@ public struct ScriptHeader: Equatable, Sendable {
     public let group: TransformerGroup
     public let description: String
     public let timeout: Int
+    public let service: Bool
 
     public static let maxLines = 20
     public static let defaultTimeout = 30
 
-    public init(name: String, group: TransformerGroup = .scripts, description: String = "", timeout: Int = defaultTimeout) {
+    public init(name: String, group: TransformerGroup = .scripts, description: String = "", timeout: Int = defaultTimeout, service: Bool = false) {
         self.name = name
         self.group = group
         self.description = description
         self.timeout = timeout
+        self.service = service
     }
 
     /// Reads the first `maxLines` lines; the first occurrence of a key wins.
@@ -49,7 +51,8 @@ public struct ScriptHeader: Equatable, Sendable {
             name: name,
             group: values["group"].map { TransformerGroup($0) } ?? .scripts,
             description: values["description"] ?? "",
-            timeout: timeout))
+            timeout: timeout,
+            service: values["service"] != nil))
     }
 
     private static func headerLine(_ line: Substring) -> (String, String)? {

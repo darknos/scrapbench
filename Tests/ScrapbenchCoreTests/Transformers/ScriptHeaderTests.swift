@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 @testable import ScrapbenchCore
 
@@ -42,5 +43,20 @@ import Testing
 
     @Test func firstOccurrenceWins() {
         #expect((try? parse("# @name A\n# @name B\n").get())?.name == "A")
+    }
+}
+
+@Suite struct ScriptHeaderServiceTests {
+    func parse(_ s: String) -> ScriptHeader? { try? ScriptHeader.parse(s, file: "x.sh").get() }
+
+    @Test func serviceKeyIsAFlag() {
+        #expect(parse("# @name A\n# @service\n")?.service == true)
+        #expect(parse("# @name A\n# @service yes please\n")?.service == true)
+        #expect(parse("# @name A\n")?.service == false)
+    }
+
+    @Test func serviceReachesTheTransformer() {
+        let header = parse("# @name A\n# @service\n")!
+        #expect(ScriptTransformer(header: header, url: URL(fileURLWithPath: "/t/a.sh")).service)
     }
 }

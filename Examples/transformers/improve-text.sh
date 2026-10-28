@@ -2,6 +2,7 @@
 # @name Improve text
 # @group AI
 # @description fixes mistakes, keeps tone and language
+# @service
 # @timeout 60
 
 # Needs the Claude Code CLI (`claude`) signed in. Scrapbench passes the scrap

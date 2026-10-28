@@ -64,6 +64,9 @@ Two targets with different language modes (see `Package.swift`):
     lists executable files in a folder as `ScriptTransformer`s (`canApply` is always true;
     `apply` throws, the app runs the file), `PendingTransform` keeps the target range in step
     with edits while a script runs. Spec: `docs/specs/2026-10-28-script-transformers-design.md`.
+    `Transformers/Scripts/Services/`: `ServiceWorkflow` builds the two plists of an Automator
+    workflow bundle for a `@service` script, `ServicePlan` diffs scripts against installed
+    bundles (add / refresh / remove). Spec: `docs/specs/2026-10-28-service-transformers-design.md`.
   - `Highlighting/` — `SyntaxHighlighter` returns `Token`s (UTF-16 `NSRange` + `TokenKind`) for a
     range. `MarkdownHighlighter` runs Markdown-lite rules outside fenced blocks and delegates
     fenced blocks to a `CodeGrammar` picked by language (`Grammars/`). `CodeBlockMap` locates
@@ -88,6 +91,11 @@ Two targets with different language modes (see `Package.swift`):
     click outside, `resignKey` on focus loss. `HeaderView` holds the file name, save status and
     the Transform button; `PaletteController` must be created after the header is in the view
     tree, or its constraints throw and the panel never shows.
+  - `ServiceInstaller` writes `~/Library/Services/Scrapbench - <name>.workflow` bundles for
+    `@service` scripts from the `Register` button in Settings and calls
+    `NSUpdateDynamicServices()`. It only ever rewrites or deletes bundles whose `Info.plist`
+    carries `ScrapbenchScriptID`; the user's own workflows are never touched. The Settings
+    window is reused, so the plan is recomputed on `didBecomeKey`, not only `onAppear`.
   - `BenchPanel` is a non-activating floating `NSPanel`, so the previous app keeps its menu bar.
     Because of that, `MainMenu` builds a never-shown main menu purely so `⌘C/V/X/A/Z/F` reach the
     text view. `⌘N` and `⌘S` are handled in `EditorTextView.keyDown` by `keyCode` (45 and 1) so

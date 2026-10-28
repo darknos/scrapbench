@@ -121,6 +121,11 @@ Select a paragraph, `⌘K`, `impr`, `Enter`, keep typing. The result lands
 when it is ready: in place if the text is still there, as a new scrap
 below if you moved on. Details in [docs/transformers.md](docs/transformers.md).
 
+Add `# @service` to a script and press `Register` in Settings: it
+also appears as `Scrapbench: <name>` in the Services menu of every app and
+replaces the selection there, with a shortcut of its own from System
+Settings → Keyboard → Keyboard Shortcuts → Services.
+
 ## Take to Scrapbench
 
 Select text in any app, right-click → Services → **Take to Scrapbench**: the

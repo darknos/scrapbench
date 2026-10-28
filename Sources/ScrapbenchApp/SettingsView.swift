@@ -1,5 +1,6 @@
 import AppKit
 import KeyboardShortcuts
+import ScrapbenchCore
 import ServiceManagement
 import SwiftUI
 
@@ -7,10 +8,30 @@ struct SettingsView: View {
     @ObservedObject var settings = Settings.shared
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     @State private var loginError: String?
+    @State private var servicePlan = ServicePlan(scripts: [], installed: [])
+    @State private var installedServices = 0
+    @State private var serviceError: String?
+    private let installer = ServiceInstaller()
 
     private let monospacedFonts = Settings.monospacedFamilies
 
     var body: some View {
+        TabView {
+            generalTab.tabItem { Text("General") }
+            editorTab.tabItem { Text("Editor") }
+            transformersTab.tabItem { Text("Transformers") }
+        }
+        .padding(.top, 8)
+        .frame(width: 440)
+        .fixedSize(horizontal: false, vertical: true)
+        .onAppear(perform: refreshServices)
+        .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { note in
+            guard (note.object as? NSWindow)?.title == "Scrapbench Settings" else { return }
+            refreshServices()
+        }
+    }
+
+    private var generalTab: some View {
         Form {
             Section("Scrap file") {
                 HStack {
@@ -25,7 +46,7 @@ struct SettingsView: View {
             Section("Hotkey") {
                 KeyboardShortcuts.Recorder("Toggle panel:", name: .togglePanel)
             }
-            Section("General") {
+            Section {
                 Toggle("Launch at login", isOn: $launchAtLogin)
                     .onChange(of: launchAtLogin) { _, enabled in setLaunchAtLogin(enabled) }
                 if let loginError {
@@ -37,36 +58,89 @@ struct SettingsView: View {
                 }
                 .pickerStyle(.segmented)
             }
-            Section("Editor") {
-                Picker("Indent", selection: $settings.indentUnit) {
-                    ForEach(IndentUnit.allCases, id: \.self) { Text($0.label).tag($0) }
-                }
-                .pickerStyle(.segmented)
-            }
-            Section("Transformers") {
-                HStack {
-                    Text("Scripts in the transformers folder appear in the palette.")
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    Button("Open transformers folder", action: openTransformersFolder)
-                }
-            }
+        }
+        .formStyle(.grouped)
+    }
+
+    private var editorTab: some View {
+        Form {
             Section("Font") {
                 Picker("Family", selection: $settings.fontName) {
                     ForEach(monospacedFonts, id: \.self) { Text($0).tag($0) }
                 }
                 Stepper("Size: \(Int(settings.fontSize))", value: $settings.fontSize, in: 9...32)
             }
+            Section("Indent") {
+                Picker("Indent", selection: $settings.indentUnit) {
+                    ForEach(IndentUnit.allCases, id: \.self) { Text($0.label).tag($0) }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+            }
         }
         .formStyle(.grouped)
-        .frame(width: 440)
-        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var transformersTab: some View {
+        Form {
+            Section("Scripts") {
+                HStack {
+                    Text("Executable files in the folder appear in the palette.")
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Button("Open folder", action: openTransformersFolder)
+                }
+            }
+            Section("Services") {
+                HStack {
+                    Text(servicePlan.isEmpty ? "No scripts with @service" : "Services: \(servicePlan.summary)")
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Button("Register", action: registerServices)
+                        .disabled(servicePlan.isEmpty)
+                    Button(installedServices > 0 ? "Remove \(installedServices)" : "Remove", action: removeAllServices)
+                        .disabled(installedServices == 0)
+                }
+                if let problem = serviceError ?? servicePlan.problem {
+                    Text(problem).font(.caption).foregroundStyle(.red)
+                }
+                Text("Scripts with @service run from the Services menu of any app, on the selection.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .formStyle(.grouped)
     }
 
     private func openTransformersFolder() {
         let url = Settings.transformersDirectory
         try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         NSWorkspace.shared.open(url)
+    }
+
+    private func refreshServices() {
+        servicePlan = installer.plan()
+        installedServices = installer.installed().count
+    }
+
+    private func registerServices() {
+        do {
+            try installer.register(installer.plan())
+            serviceError = nil
+        } catch {
+            serviceError = error.localizedDescription
+        }
+        refreshServices()
+    }
+
+    private func removeAllServices() {
+        do {
+            try installer.removeAll()
+            serviceError = nil
+        } catch {
+            serviceError = error.localizedDescription
+        }
+        refreshServices()
     }
 
     private func chooseFile() {
