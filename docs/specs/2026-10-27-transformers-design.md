@@ -170,6 +170,11 @@ no units: that is a plugin's job.
 
 ## Palette (`ScrapbenchApp/CommandPalette.swift`)
 
+Superseded on 2026-10-28 by `2026-10-28-header-and-palette-design.md`: the
+palette lives inside the panel under a header, the last applied transformer
+is listed first and `⌘K` in the open palette applies it. The section below
+is kept for the parts that did not change (target, keys, filtering, errors).
+
 - `⌘K` in the editor (keyCode 40, so it works under any layout) resolves the
   target text, selects it, and opens the palette. `⌘K` is also in the hidden
   main menu and listed in Help.

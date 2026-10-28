@@ -155,7 +155,8 @@ protocol SyntaxHighlighter { func tokens(in text: String,
 - **`StatusItemController`**: menu bar icon, menu: Open, Settings…, Quit.
 - **`HotkeyController`**: `KeyboardShortcuts.Name.togglePanel`, toggles
   the panel.
-- **`BenchPanel`**: `NSPanel` with `.nonactivatingPanel`, `.titled` hidden,
+- **`BenchPanel`**: (header strip and in-panel palette: see
+  `2026-10-28-header-and-palette-design.md`) `NSPanel` with `.nonactivatingPanel`, `.titled` hidden,
   `.resizable`, `.fullSizeContentView`, floating level, `hidesOnDeactivate`
   off. `frameAutosaveName = "BenchPanel"`. Default 720×480 centred.
   Resigning key (click outside) keeps the panel up and flushes pending
