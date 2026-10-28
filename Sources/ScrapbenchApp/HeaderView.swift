@@ -34,8 +34,8 @@ final class HeaderView: NSView {
         statusLabel.textColor = theme.muted
 
         button.bezelStyle = .rounded
-        button.controlSize = .small
-        button.font = .monospacedSystemFont(ofSize: 11, weight: .regular)
+        button.controlSize = .regular
+        button.font = .monospacedSystemFont(ofSize: 12, weight: .regular)
         button.setButtonType(.pushOnPushOff)
         button.target = self
         button.action = #selector(transformTapped)
