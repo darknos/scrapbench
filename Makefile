@@ -5,7 +5,9 @@ BIN      = $(shell swift build -c release --show-bin-path)
 # Signing identity: "-" is ad-hoc; pass SIGN="Developer ID Application: ..." for a real one.
 SIGN    ?= -
 
-.PHONY: build app run test clean sample
+ICONS    = $(BUILD)/icons/AppIcon.icns
+
+.PHONY: build app run test clean sample icons
 
 build:
 	swift build -c release --product ScrapbenchApp
@@ -13,11 +15,18 @@ build:
 test:
 	swift test
 
-app: build
+icons: $(ICONS)
+
+$(ICONS): Resources/Icon/AppIcon.svg Resources/Icon/MenuIcon.svg Scripts/make-icons.sh
+	mkdir -p $(BUILD)/icons
+	Scripts/make-icons.sh $(BUILD)/icons
+
+app: build $(ICONS)
 	rm -rf $(BUNDLE)
 	mkdir -p $(BUNDLE)/Contents/MacOS $(BUNDLE)/Contents/Resources
 	cp $(BIN)/ScrapbenchApp $(BUNDLE)/Contents/MacOS/$(APP)
 	cp Resources/Info.plist $(BUNDLE)/Contents/Info.plist
+	cp $(BUILD)/icons/AppIcon.icns $(BUILD)/icons/MenuIcon.png $(BUILD)/icons/MenuIcon@2x.png $(BUNDLE)/Contents/Resources/
 	# KeyboardShortcuts ships a resource bundle for its recorder UI
 	-cp -R $(BIN)/KeyboardShortcuts_KeyboardShortcuts.bundle $(BUNDLE)/Contents/Resources/ 2>/dev/null
 	codesign --force --sign "$(SIGN)" --deep --options runtime --timestamp=none $(BUNDLE)

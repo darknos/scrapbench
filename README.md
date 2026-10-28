@@ -7,7 +7,8 @@ jot the thought, press `Esc` — saved and hidden.
 
 ## Build
 
-Requires Xcode 27 / Swift 6. No `.xcodeproj`; it is a Swift Package.
+Requires Xcode 27 / Swift 6 and `rsvg-convert` (`brew install librsvg`) for the
+icons. No `.xcodeproj`; it is a Swift Package.
 
 ```sh
 make app          # builds build/Scrapbench.app (ad-hoc signed)

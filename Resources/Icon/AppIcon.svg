@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- macOS icon grid: 824 px rounded square centred in 1024, corner radius ~185 -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3A3A38"/>
+      <stop offset="1" stop-color="#232322"/>
+    </linearGradient>
+  </defs>
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#bg)"/>
+  <!-- two full lines, one short line, caret -->
+  <rect x="268" y="356" width="488" height="64" rx="32" fill="#ECEBE6"/>
+  <rect x="268" y="480" width="328" height="64" rx="32" fill="#ECEBE6"/>
+  <rect x="268" y="604" width="200" height="64" rx="32" fill="#ECEBE6"/>
+  <rect x="512" y="580" width="56" height="112" rx="10" fill="#E0A030"/>
+</svg>

@@ -104,6 +104,9 @@ Two targets with different language modes (see `Package.swift`):
 
 - `Resources/Info.plist` is copied verbatim into the bundle by the Makefile; `LSUIElement` keeps
   the app out of the Dock. Bundle id is `org.nosenko.Scrapbench`.
+- Icons are SVGs in `Resources/Icon/`; `make app` renders them with `Scripts/make-icons.sh`
+  (needs `rsvg-convert` from `brew install librsvg`) into `build/icons/` and copies the `.icns`
+  and the menu bar template PNGs into the bundle. Edit the SVGs, never the rendered files.
 - Highlighter grammars list comment and string rules first; earlier rules win on overlap.
 
 ## Brand and naming
