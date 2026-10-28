@@ -10,7 +10,7 @@ public struct InstalledService: Equatable, Sendable {
     }
 }
 
-/// What `Register services` would do: the scripts with `@service` against
+/// What `Register` would do: the scripts with `@service` against
 /// the bundles already installed, matched by transformer id.
 public struct ServicePlan {
     public struct Refresh: Equatable {

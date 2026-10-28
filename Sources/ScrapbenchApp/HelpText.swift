@@ -59,7 +59,7 @@ enum HelpText {
     Your own: executable files in `~/Library/Application Support/Scrapbench/Transformers/`
     (text on stdin, result on stdout, `# @name` on top). They run without
     blocking the editor; `⌘,` → Open transformers folder. Add `# @service` and
-    press Register services there: the script also runs from the Services menu
+    press Register next to Services there: the script also runs from the Services menu
     of any app, on the selection.
 
     ## Markdown

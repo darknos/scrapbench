@@ -87,12 +87,12 @@ and the selection is replaced with the script's output. It is the same file
 that serves the palette.
 
 Services are not installed on their own. Open Settings → Transformers; the
-line under the folder button says what `Register services` would do
+line under the folder button says what `Register` would do
 (`Services: add 2, refresh 1, remove 1`). Press it once after adding
 `@service` to a script. It writes one Automator workflow bundle per script
 into `~/Library/Services/` (`Scrapbench - <name>.workflow`), rewrites the
 ones already there and removes ours for scripts that no longer have
-`@service`. `Remove all services` deletes every bundle Scrapbench wrote and
+`@service`. `Remove` (titled `Remove 3` when three are installed) deletes every bundle Scrapbench wrote and
 nothing else; workflows you made yourself are never touched, and a workflow
 of yours that happens to have the same name as ours is reported, not
 replaced. Two scripts with the same `@name` would share a bundle: the first
@@ -110,7 +110,7 @@ running. Four things differ from the bench:
 - A non-zero exit shows Automator's error dialog and leaves the selection as
   it was. Empty output replaces the selection with nothing.
 - The bundle holds the script's path. A moved transformers folder needs
-  `Register services` again.
+  `Register` again.
 
 ## Examples
 

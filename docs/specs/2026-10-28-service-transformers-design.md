@@ -78,14 +78,14 @@ documented:
   selection as it was. Empty output replaces the selection with nothing,
   as any Automator text service does.
 - The script runs even when Scrapbench is not running; the bundle holds the
-  script's path, so a moved transformers folder needs `Register services`
+  script's path, so a moved transformers folder needs `Register`
   again.
 
 A workflow the user made by hand with the same purpose (`Improve
 Text.workflow`) is a different bundle with no `ScrapbenchScriptID`; it stays
 and shows next to ours in the menu.
 
-## Register services and Remove all services
+## Register and Remove
 
 Core computes a `ServicePlan` from two lists: the scripts in the
 transformers folder that have `@service` (the regular `ScriptRegistry.scan`,
@@ -98,11 +98,11 @@ problems excluded) and the bundles in `~/Library/Services/` that carry
 - `remove`: a bundle with our key whose id has no script with `@service`
   any more (key removed, file deleted, file renamed).
 
-`Register services` performs the whole plan: writes every `add` and
+`Register` performs the whole plan: writes every `add` and
 `refresh` bundle (a `refresh` whose title changed is written under the new
 folder name and the old folder is removed), removes every `remove` bundle,
 then calls `NSUpdateDynamicServices()` so the Services menu picks the change
-up without a logout. `Remove all services` deletes every bundle with our
+up without a logout. `Remove` (titled `Remove 3` when three are installed) deletes every bundle with our
 key and calls `NSUpdateDynamicServices()` too.
 
 Two scripts whose bundle names match (`@name` compared case-insensitively,
@@ -124,14 +124,13 @@ the shortcut assigned again.
 
 The Transformers section gains two rows under `Open transformers folder`:
 
-- A status line and the `Register services` button. The line reads
+- One row: the status line, the `Register` button and the `Remove` button. The line reads
   `Services: add 2, refresh 1, remove 1` (only the non-zero parts; `refresh
   3` when nothing else changes) or `No scripts with @service` when the plan
   is empty and nothing of ours is installed, in which case the button is
   disabled. The plan is computed when the window opens and after each
   press.
-- `Remove all services`, titled `Remove 3 services` when something is
-  installed, disabled at zero.
+- `Remove`, titled `Remove 3` when something is installed, disabled at zero.
 - A failure (a bundle that cannot be written or removed) is shown as a red
   caption under the rows, like the launch-at-login error, with the bundle
   name and the system message.

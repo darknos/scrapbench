@@ -92,7 +92,7 @@ Two targets with different language modes (see `Package.swift`):
     the Transform button; `PaletteController` must be created after the header is in the view
     tree, or its constraints throw and the panel never shows.
   - `ServiceInstaller` writes `~/Library/Services/Scrapbench - <name>.workflow` bundles for
-    `@service` scripts from the `Register services` button in Settings and calls
+    `@service` scripts from the `Register` button in Settings and calls
     `NSUpdateDynamicServices()`. It only ever rewrites or deletes bundles whose `Info.plist`
     carries `ScrapbenchScriptID`; the user's own workflows are never touched. The Settings
     window is reused, so the plan is recomputed on `didBecomeKey`, not only `onAppear`.

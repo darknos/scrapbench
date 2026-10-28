@@ -50,7 +50,7 @@ struct SettingsView: View {
             }
             Section("Transformers") {
                 HStack {
-                    Text("Scripts in the transformers folder appear in the palette.")
+                    Text("Scripts in the folder appear in the palette.")
                         .foregroundStyle(.secondary)
                     Spacer()
                     Button("Open transformers folder", action: openTransformersFolder)
@@ -59,15 +59,9 @@ struct SettingsView: View {
                     Text(servicePlan.isEmpty ? "No scripts with @service" : "Services: \(servicePlan.summary)")
                         .foregroundStyle(.secondary)
                     Spacer()
-                    Button("Register services", action: registerServices)
+                    Button("Register", action: registerServices)
                         .disabled(servicePlan.isEmpty)
-                }
-                HStack {
-                    Text("Scripts with @service work in any app through the Services menu.")
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    Button(installedServices > 0 ? "Remove \(installedServices) \(installedServices == 1 ? "service" : "services")" : "Remove all services",
-                           action: removeAllServices)
+                    Button(installedServices > 0 ? "Remove \(installedServices)" : "Remove", action: removeAllServices)
                         .disabled(installedServices == 0)
                 }
                 if let problem = serviceError ?? servicePlan.problem {
