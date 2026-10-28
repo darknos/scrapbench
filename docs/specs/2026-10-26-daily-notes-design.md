@@ -96,6 +96,12 @@ signs it ad-hoc. `make run` launches it. `swift test` runs the core tests.
   while the last one is followed only by whitespace, removes it and any
   trailing whitespace left behind. Separators from
   previous sessions are never touched. Edits above are preserved.
+  If the session scrap ends with an unclosed ``` fence, a closing fence
+  line is appended, so a scrap never leaks into the next one. `newScrap`
+  does the same before appending its separator.
+- `CodeBlockMap`: a separator line ends an unclosed block (for files
+  written before this rule, or edited elsewhere). A fence after it opens
+  a new block.
 
 The formatter is a value type holding the list of session separator
 strings; the app creates one per panel session.

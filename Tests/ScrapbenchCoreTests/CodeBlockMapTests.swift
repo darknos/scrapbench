@@ -93,3 +93,44 @@ import Testing
         #expect(m.block(containing: (text as NSString).length) == nil)
     }
 }
+
+@Suite struct CodeBlockMapSeparatorTests {
+    let sep = Separator.make(date: localDate(2026, 10, 26, 14, 35))
+
+    @Test func separatorLineEndsUnclosedBlock() {
+        let text = "```sh\nls\n\(sep)\nafter\n"
+        let m = CodeBlockMap(text: text as NSString)
+        #expect(m.blocks.count == 1)
+        let b = m.blocks[0]
+        #expect(b.fenceClose == nil)
+        #expect(b.body == NSRange(location: 6, length: 3))
+        #expect(b.whole == NSRange(location: 0, length: 9))
+        #expect(m.block(containing: 12) == nil)
+    }
+
+    @Test func separatorAlwaysCutsAnOpenBlock() {
+        // One pass: the map cannot know a later fence was meant as the closing one.
+        let text = "```\n\(sep)\n```\n"
+        let m = CodeBlockMap(text: text as NSString)
+        #expect(m.blocks.count == 2)
+        #expect(m.blocks[0].fenceClose == nil)
+        #expect(m.blocks[0].body.length == 0)
+        #expect(m.blocks[1].fenceClose == nil)
+    }
+
+    @Test func cutLineCountsAsFenceForRescans() {
+        let text = "```\nx\n\(sep)\nafter\n"
+        let m = CodeBlockMap(text: text as NSString)
+        #expect(m.blocks[0].cut == NSRange(location: 6, length: sep.utf16.count))
+        #expect(m.fenceIntersects(NSRange(location: 8, length: 1)))
+        #expect(!m.fenceIntersects(NSRange(location: 6 + sep.utf16.count + 1, length: 2)))
+        #expect(m.shifted(after: 0, by: 3).blocks[0].cut == NSRange(location: 9, length: sep.utf16.count))
+    }
+
+    @Test func fenceAfterSeparatorOpensNewBlock() {
+        let text = "```\nx\n\(sep)\n```\ny\n"
+        let m = CodeBlockMap(text: text as NSString)
+        #expect(m.blocks.count == 2)
+        #expect(m.blocks[1].fenceClose == nil)
+    }
+}

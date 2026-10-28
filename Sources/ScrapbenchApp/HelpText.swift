@@ -7,7 +7,8 @@ enum HelpText {
     ## Keys
 
     - `⌃⌥Space` show or hide the panel (change it in Settings)
-    - `Esc` save and hide; the window close button does the same
+    - `Esc` save and hide; the window close button does the same.
+      An open ``` fence is closed for you so the next scrap stays outside it.
     - `⌘N` new timestamped scrap at the end
     - `⌘S` save now (autosave runs 2 s after you stop typing)
     - `⌘⌥A` select the current scrap (text between separators)

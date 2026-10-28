@@ -125,3 +125,48 @@ import Testing
         #expect(f.finalize(text: t) == "b\n")
     }
 }
+
+@Suite struct ScrapFormatterFenceTests {
+    let d1 = localDate(2026, 10, 26, 14, 35)
+    let d2 = localDate(2026, 10, 26, 14, 40)
+    var sep1: String { Separator.make(date: d1) }
+    var sep2: String { Separator.make(date: d2) }
+
+    @Test func finalizeClosesUnclosedFenceInSessionScrap() {
+        var f = ScrapFormatter()
+        let t = f.open(text: "", date: d1).text + "```sh\nls -la\n"
+        #expect(f.finalize(text: t) == t + "```\n")
+    }
+
+    @Test func finalizeClosesFenceWithoutTrailingNewline() {
+        var f = ScrapFormatter()
+        let t = f.open(text: "", date: d1).text + "```sh\nls -la"
+        #expect(f.finalize(text: t) == t + "\n```\n")
+    }
+
+    @Test func finalizeLeavesClosedFenceAlone() {
+        var f = ScrapFormatter()
+        let t = f.open(text: "", date: d1).text + "```sh\nls\n```\n"
+        #expect(f.finalize(text: t) == t)
+    }
+
+    @Test func finalizeIgnoresUnclosedFenceFromOlderScraps() {
+        var f = ScrapFormatter()
+        let t = f.open(text: "```sh\nold\n", date: d1).text + "new\n"
+        #expect(f.finalize(text: t) == t)
+    }
+
+    @Test func finalizeStripsEmptySeparatorBeforeClosingFence() {
+        var f = ScrapFormatter()
+        var t = f.open(text: "", date: d1).text + "```\nx\n"
+        t = f.newScrap(text: t, date: d2).text
+        // The ⌘N separator is empty and goes; the fence it was appended after still gets closed.
+        #expect(f.finalize(text: t).hasSuffix("```\nx\n```\n"))
+    }
+
+    @Test func newScrapClosesFenceBeforeAppendingSeparator() {
+        var f = ScrapFormatter()
+        let t = f.open(text: "", date: d1).text + "```\nx\n"
+        #expect(f.newScrap(text: t, date: d2).text == t + "```\n" + sep2 + "\n")
+    }
+}

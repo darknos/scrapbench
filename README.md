@@ -48,6 +48,9 @@ to `<name>.conflict-<timestamp>.md` next to it instead.
 | `⌘⇧K` | repeat the last transformer |
 | `⌘F` | find |
 | `⌘,` | settings |
+
+Closing the panel finishes the scrap: empty separators go, and a ``` fence
+left open gets its closing line, so the next scrap never lands inside it.
 | `⌘?` | help (also in the menu bar menu) |
 
 Launching with `--open` shows the panel immediately (handy for testing).

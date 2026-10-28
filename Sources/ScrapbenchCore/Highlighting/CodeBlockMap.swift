@@ -1,11 +1,12 @@
 import Foundation
 
 public struct CodeBlock: Equatable, Sendable {
-    public init(fenceOpen: NSRange, body: NSRange, fenceClose: NSRange?, language: String?) {
+    public init(fenceOpen: NSRange, body: NSRange, fenceClose: NSRange?, language: String?, cut: NSRange? = nil) {
         self.fenceOpen = fenceOpen
         self.body = body
         self.fenceClose = fenceClose
         self.language = language
+        self.cut = cut
     }
 
     /// The opening fence line, without its line terminator.
@@ -15,6 +16,8 @@ public struct CodeBlock: Equatable, Sendable {
     /// The closing fence line, without its line terminator; nil when the block is unclosed.
     public let fenceClose: NSRange?
     public let language: String?
+    /// The separator line that ended an unclosed block, without its line terminator; nil otherwise.
+    public let cut: NSRange?
 
     /// From the start of the opening fence to the end of the closing fence (or end of text).
     public var whole: NSRange {
@@ -24,6 +27,7 @@ public struct CodeBlock: Equatable, Sendable {
 }
 
 /// Locates fenced code blocks (``` at column 0) with one pass over the lines.
+/// A separator line ends an unclosed block, so a scrap left open never swallows the next one.
 public struct CodeBlockMap: Sendable {
     public let blocks: [CodeBlock]
 
@@ -57,6 +61,15 @@ public struct CodeBlockMap: Sendable {
                     open = (content, lang.isEmpty ? nil : lang)
                     bodyStart = lineEnd
                 }
+            } else if let o = open, content.length > 0, text.character(at: lineStart) == 0x2D,
+                      Separator.isSeparatorLine(Substring(text.substring(with: content))) {
+                blocks.append(CodeBlock(
+                    fenceOpen: o.fence,
+                    body: NSRange(location: bodyStart, length: lineStart - bodyStart),
+                    fenceClose: nil,
+                    language: o.language,
+                    cut: content))
+                open = nil
             }
             index = lineEnd
         }
@@ -90,12 +103,17 @@ public struct CodeBlockMap: Sendable {
         return result
     }
 
-    /// Whether any fence line overlaps `range` (pre-edit coordinates).
+    /// Whether any fence line, or a separator line that cut a block, overlaps `range` (pre-edit coordinates).
     public func fenceIntersects(_ range: NSRange) -> Bool {
-        blocks(intersecting: range).contains { b in
-            NSIntersectionRange(b.fenceOpen, range).length > 0 || NSLocationInRange(range.location, b.fenceOpen)
-                || b.fenceClose.map { NSIntersectionRange($0, range).length > 0 || NSLocationInRange(range.location, $0) } == true
+        func touches(_ r: NSRange) -> Bool { NSIntersectionRange(r, range).length > 0 || NSLocationInRange(range.location, r) }
+        let lo = firstIndex(endingAfter: range.location)
+        var i = max(0, lo - 1)
+        while i < blocks.count, blocks[i].fenceOpen.location <= range.upperBound {
+            let b = blocks[i]
+            if touches(b.fenceOpen) || b.fenceClose.map(touches) == true || b.cut.map(touches) == true { return true }
+            i += 1
         }
+        return false
     }
 
     /// The same map after an edit that did not touch any fence: ranges at or
@@ -108,7 +126,8 @@ public struct CodeBlockMap: Sendable {
             return r
         }
         return CodeBlockMap(blocks: blocks.map {
-            CodeBlock(fenceOpen: move($0.fenceOpen), body: move($0.body), fenceClose: $0.fenceClose.map(move), language: $0.language)
+            CodeBlock(fenceOpen: move($0.fenceOpen), body: move($0.body), fenceClose: $0.fenceClose.map(move),
+                      language: $0.language, cut: $0.cut.map(move))
         })
     }
 

@@ -38,7 +38,12 @@ public struct ScrapFormatter {
             result = trailing
         }
         if result.isEmpty { return "" }
-        return result.hasSuffix("\n") ? String(result) : String(result) + "\n"
+        var text = result.hasSuffix("\n") ? String(result) : String(result) + "\n"
+        if let last = sessionSeparators.last(where: { text.contains($0) }),
+           let scrap = textAfterLast(separator: last, in: text), Self.hasUnclosedFence(scrap) {
+            text += "```\n"
+        }
+        return text
     }
 
     /// Appends a piece of text taken from elsewhere (the "Take to Scrapbench"
@@ -57,6 +62,10 @@ public struct ScrapFormatter {
     private mutating func append(separator: String, to text: String) -> (text: String, cursor: Int) {
         var result = text
         if !result.isEmpty, !result.hasSuffix("\n") { result += "\n" }
+        if let last = sessionSeparators.last, let scrap = textAfterLast(separator: last, in: result),
+           Self.hasUnclosedFence(scrap) {
+            result += "```\n"
+        }
         result += separator + "\n"
         sessionSeparators.append(separator)
         return (result, result.utf16.count)
@@ -65,6 +74,15 @@ public struct ScrapFormatter {
     private func textAfterLast(separator: String, in text: String) -> Substring? {
         guard let range = text.range(of: separator, options: .backwards) else { return nil }
         return text[range.upperBound...]
+    }
+
+    /// Same fence rule as `CodeBlockMap`: a line starting with ``` at column 0.
+    static func hasUnclosedFence(_ text: Substring) -> Bool {
+        var open = false
+        for line in text.split(separator: "\n", omittingEmptySubsequences: false) where line.hasPrefix("```") {
+            open.toggle()
+        }
+        return open
     }
 
     private func isWholeLine(_ sep: String, endingAt s: Substring) -> Bool {

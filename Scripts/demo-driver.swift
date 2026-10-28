@@ -1,0 +1,64 @@
+// Drives the app for the README demo: layout-independent typing through CGEvent.
+// Usage: demo-driver open | type:<text> | esc | sleep:<seconds> ...
+import Foundation
+import CoreGraphics
+
+func post(_ key: CGKeyCode, flags: CGEventFlags = []) {
+    for down in [true, false] {
+        let e = CGEvent(keyboardEventSource: source, virtualKey: key, keyDown: down)!
+        e.flags = flags
+        e.post(tap: .cgSessionEventTap)
+        usleep(12_000)
+    }
+}
+
+// US layout key codes, so apps that look at keyCode see something sensible.
+let usKeys: [Character: CGKeyCode] = {
+    var m: [Character: CGKeyCode] = [:]
+    let rows: [(String, [CGKeyCode])] = [
+        ("asdfhgzxcv", [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]),
+        ("bqweryt123465=97-80]ou[ip", [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35]),
+        ("l;'", [37, 41, 39]), ("kj,/nm.", [40, 38, 43, 44, 45, 46, 47]), ("`", [50]),
+        (" \n\t", [49, 36, 48]),
+    ]
+    for (chars, codes) in rows { for (c, k) in zip(chars, codes) { m[c] = k } }
+    return m
+}()
+
+let source = CGEventSource(stateID: .combinedSessionState)
+
+func type(_ text: String) {
+    for ch in text {
+        var units = Array(String(ch).utf16)
+        let key = usKeys[Character(ch.lowercased())] ?? 0
+        for down in [true, false] {
+            let e = CGEvent(keyboardEventSource: source, virtualKey: key, keyDown: down)!
+            e.keyboardSetUnicodeString(stringLength: units.count, unicodeString: &units)
+            e.flags = []
+            e.post(tap: .cgSessionEventTap)
+            usleep(12_000)
+        }
+        usleep(ch == "\n" ? 180_000 : UInt32.random(in: 45_000...110_000))
+    }
+}
+
+for arg in CommandLine.arguments.dropFirst() {
+    switch arg {
+    case "open":
+        let script = """
+        tell application "System Events" to tell process "Scrapbench"
+            click menu bar item 1 of menu bar 2
+            click menu item "Open Bench" of menu 1 of menu bar item 1 of menu bar 2
+        end tell
+        """
+        let p = Process(); p.executableURL = URL(fileURLWithPath: "/usr/bin/osascript"); p.arguments = ["-e", script]
+        try? p.run(); p.waitUntilExit()
+    case "esc": post(53)
+    case "up": post(126)
+    case "down": post(125)
+    case "home": post(115)
+    case let s where s.hasPrefix("type:"): type(String(s.dropFirst(5)).replacingOccurrences(of: "\\n", with: "\n"))
+    case let s where s.hasPrefix("sleep:"): usleep(UInt32((Double(s.dropFirst(6)) ?? 1) * 1_000_000))
+    default: FileHandle.standardError.write("unknown: \(arg)\n".data(using: .utf8)!)
+    }
+}

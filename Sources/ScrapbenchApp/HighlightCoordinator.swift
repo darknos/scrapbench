@@ -66,9 +66,11 @@ final class HighlightCoordinator: NSObject, NSTextStorageDelegate {
         }
         var dirty = text.paragraphRange(for: editedRange)
         let replaced = NSRange(location: editedRange.location, length: max(0, editedRange.length - delta))
-        let touchesFence = codeBlocks.fenceIntersects(replaced) || text.substring(with: dirty).contains("```")
+        let dirtyText = text.substring(with: dirty)
+        let touchesFence = codeBlocks.fenceIntersects(replaced) || dirtyText.contains("```")
+            || (dirtyText.contains(Separator.dashes) && !Separator.matches(in: text, range: dirty).isEmpty)
         if touchesFence {
-            // A fence change can re-pair every fence below it: rebuild the map and re-highlight to the end.
+            // A fence or separator change can re-pair every fence below it: rebuild the map and re-highlight to the end.
             codeBlocks = CodeBlockMap(text: text)
             dirty = NSRange(location: dirty.location, length: text.length - dirty.location)
         } else {
