@@ -6,7 +6,8 @@
 
 A workbench for text scraps in the macOS menu bar: one plain-text file, a
 floating editor with syntax highlighting, a timestamped separator per session. Press the hotkey, paste, split, fix that long command
-line, jot the thought, press `Esc` — saved and hidden.
+line, jot the thought, press `Esc` — saved and hidden. Your own transformers are
+scripts, AI rewrites and translations included.
 
 ![Paste a command, split it; paste JSON, pretty-print it; epoch, calculator, base64: each scrap under its own timestamp](docs/demo.gif)
 
@@ -101,12 +102,23 @@ with fuzzy search; `Enter` replaces the text in one undo step. Built-ins:
 A transformer that cannot handle the text reports why in the banner and
 leaves the text alone.
 
-Your own transformers are executable files in
-`~/Library/Application Support/Scrapbench/Transformers/`: text on stdin,
-result on stdout, a `# @name` comment at the top. They run without blocking
-the editor, so a script that asks an AI model for a rewrite or a translation
-fits; `Examples/transformers/` has three to copy, two of them through the
-Claude Code CLI. See [docs/transformers.md](docs/transformers.md).
+### Your own transformers, AI included
+
+Drop an executable file into
+`~/Library/Application Support/Scrapbench/Transformers/`. Text comes in
+on stdin, the result goes out on stdout, a `# @name` comment on top gives
+it a name. Press `⌘K`: it is in the list, next to the built-ins.
+
+Scripts run without blocking the editor, so a round trip to an AI model
+fits in. `Examples/transformers/` has three ready to copy:
+
+- **Improve text**: fix mistakes, keep tone and language, via the Claude Code CLI
+- **Translate to English**: same file, another prompt; change the language once to get Bulgarian or German
+- **JSON pretty (jq)**: any shell tool works the same way
+
+Select a paragraph, `⌘K`, `impr`, `Enter`, keep typing. The result lands
+when it is ready: in place if the text is still there, as a new scrap
+below if you moved on. Details in [docs/transformers.md](docs/transformers.md).
 
 ## Take to Scrapbench
 
