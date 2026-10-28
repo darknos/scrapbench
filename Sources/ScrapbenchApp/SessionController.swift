@@ -23,7 +23,8 @@ final class SessionController: NSObject, NSTextViewDelegate {
     override init() {
         store = ScrapStore(fileURL: settings.fileURL, supportDirectory: Settings.supportDirectory)
         super.init()
-        transform = TransformController(editor: editor, banner: panel.banner)
+        transform = TransformController(editor: editor, banner: panel.banner, palette: panel.palette, header: panel.header)
+        panel.header.onTransform = { [weak self] in self?.transform.openPalette() }
         editor.delegate = self
         editor.onEscape = { [weak self] in self?.close() }
         editor.onNewScrap = { [weak self] in self?.newScrap() }

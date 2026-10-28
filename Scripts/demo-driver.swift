@@ -86,6 +86,14 @@ for arg in args {
         try? p.run(); p.waitUntilExit()
     case "esc": post(53)
     case "enter": post(36)
+    case let s where s.hasPrefix("click:"):
+        let v = s.dropFirst(6).split(separator: ",").compactMap { Double($0) }
+        guard v.count == 2 else { break }
+        let p = CGPoint(x: v[0], y: v[1])
+        for (type, button) in [(CGEventType.leftMouseDown, CGMouseButton.left), (.leftMouseUp, .left)] {
+            CGEvent(mouseEventSource: source, mouseType: type, mouseCursorPosition: p, mouseButton: button)?.post(tap: .cgSessionEventTap)
+            usleep(40_000)
+        }
     case let s where s.hasPrefix("cmd:"):
         post(usKeys[Character(String(s.dropFirst(4)))] ?? 0, flags: .maskCommand)
     case let s where s.hasPrefix("clip:"):

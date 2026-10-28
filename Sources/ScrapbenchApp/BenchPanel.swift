@@ -6,6 +6,7 @@ final class BenchPanel: NSPanel {
     let editor: EditorTextView
     let header = HeaderView()
     let banner = BannerView()
+    private(set) var palette: PaletteController!
     var onClose: () -> Void = {}
     var onFocusLost: () -> Void = {}
 
@@ -36,7 +37,7 @@ final class BenchPanel: NSPanel {
         stack.orientation = .vertical
         stack.spacing = 0
         stack.translatesAutoresizingMaskIntoConstraints = false
-        container.addSubview(stack)
+        container.addSubview(stack, positioned: .below, relativeTo: nil)
         NSLayoutConstraint.activate([
             stack.topAnchor.constraint(equalTo: container.topAnchor),
             stack.bottomAnchor.constraint(equalTo: container.bottomAnchor),
@@ -44,6 +45,8 @@ final class BenchPanel: NSPanel {
             stack.trailingAnchor.constraint(equalTo: container.trailingAnchor),
         ])
         banner.isHidden = true
+        // After the stack is in place, so the palette's constraints to the header have a common ancestor.
+        palette = PaletteController(host: container, anchorTo: header, returnFocusTo: editor)
         contentView = container
 
         setFrameAutosaveName("BenchPanel")
@@ -57,14 +60,25 @@ final class BenchPanel: NSPanel {
         onClose()
     }
 
+    /// A click outside the open palette closes it and goes no further.
+    override func sendEvent(_ event: NSEvent) {
+        if event.type == .leftMouseDown || event.type == .rightMouseDown,
+           palette.handleMouseDown(at: event.locationInWindow) {
+            return
+        }
+        super.sendEvent(event)
+    }
+
     override func resignKey() {
         super.resignKey()
+        palette.close()
         // The panel stays up when focus moves elsewhere; guard against the
         // resign that our own orderOut triggers.
         if isVisible { onFocusLost() }
     }
 
     func show() {
+        palette.close()
         banner.isHidden = true
         makeKeyAndOrderFront(nil)
         makeFirstResponder(editor)
