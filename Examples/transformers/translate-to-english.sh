@@ -1,7 +1,7 @@
 #!/bin/bash
 # @name Translate to English
 # @group AI
-# @description Keeps meaning and tone
+# @description keeps meaning and tone
 # @timeout 60
 
 # Needs the Claude Code CLI (`claude`) signed in. Change the language in the

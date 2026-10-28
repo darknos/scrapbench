@@ -1,7 +1,7 @@
 #!/bin/bash
 # @name Improve text
 # @group AI
-# @description Fixes mistakes, keeps tone and language
+# @description fixes mistakes, keeps tone and language
 # @timeout 60
 
 # Needs the Claude Code CLI (`claude`) signed in. Scrapbench passes the scrap

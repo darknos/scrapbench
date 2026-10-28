@@ -7,6 +7,7 @@ import Foundation
 public struct UnwrapTransformer: Transformer, LineAware {
     public let id = "lines.unwrap"
     public let name = "Unwrap lines"
+    public let description = "undo terminal hard wraps"
     public let group = TransformerGroup.lines
     public init() {}
 

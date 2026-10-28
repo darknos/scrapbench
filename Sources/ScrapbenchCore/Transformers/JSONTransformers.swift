@@ -3,6 +3,7 @@ import Foundation
 public struct JSONPrettyTransformer: Transformer {
     public let id = "json.pretty"
     public let name = "JSON pretty"
+    public let description = "2 spaces, key order kept"
     public let group = TransformerGroup.lines
     public init() {}
 
@@ -18,6 +19,7 @@ public struct JSONPrettyTransformer: Transformer {
 public struct JSONMinifyTransformer: Transformer {
     public let id = "json.minify"
     public let name = "JSON minify"
+    public let description = "whitespace outside strings removed"
     public let group = TransformerGroup.lines
     public init() {}
 

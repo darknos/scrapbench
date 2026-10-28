@@ -21,6 +21,7 @@ public struct LowerCaseTransformer: Transformer {
 public struct TitleCaseTransformer: Transformer {
     public let id = "case.title"
     public let name = "Title Case"
+    public let description = "first letter of each word"
     public let group = TransformerGroup.case
     public init() {}
     public func canApply(to text: String) -> Bool { true }
@@ -80,6 +81,7 @@ public enum IdentifierWords {
 public struct IdentifierCaseTransformer: Transformer {
     public let id: String
     public let name: String
+    public let description = "per line, any identifier style"
     public let group = TransformerGroup.case
     private let join: @Sendable ([String]) -> String
 

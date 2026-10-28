@@ -22,6 +22,17 @@ import Testing
         #expect(TransformerRegistry.transformer(id: "script.x") == nil)
     }
 
+    @Test func builtInDescriptionsAreShortAndLowerCase() {
+        let described = TransformerRegistry.builtIn.filter { !$0.description.isEmpty }
+        #expect(described.count >= 10)
+        for t in TransformerRegistry.builtIn {
+            #expect(t.description.count <= 40, "\(t.id)")
+            #expect(!t.description.hasSuffix("."), "\(t.id)")
+            #expect(t.description.first.map { !$0.isUppercase } ?? true, "\(t.id)")
+        }
+        #expect(TransformerRegistry.transformer(id: "lines.unwrap")?.description == "undo terminal hard wraps")
+    }
+
     @Test func applicableFilters() {
         let ids = TransformerRegistry.applicable(to: "3+4").map(\.id)
         #expect(ids.contains("calc.evaluate"))

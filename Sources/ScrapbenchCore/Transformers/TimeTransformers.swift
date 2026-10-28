@@ -4,6 +4,7 @@ import Foundation
 public struct EpochISOTransformer: Transformer {
     public let id = "time.epochIso"
     public let name = "Epoch ↔ ISO 8601"
+    public let description = "10 or 13 digits, or an ISO date"
     public let group = TransformerGroup.time
     public init() {}
 

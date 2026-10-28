@@ -5,16 +5,18 @@ import Foundation
 public struct LineTransformer: Transformer, LineAware {
     public let id: String
     public let name: String
+    public let description: String
     public let group: TransformerGroup
     private let canApplyLines: @Sendable ([String]) -> Bool
     private let transform: @Sendable ([String]) -> [String]
 
-    public init(id: String, name: String, group: TransformerGroup = .lines,
+    public init(id: String, name: String, group: TransformerGroup = .lines, description: String = "",
                 canApply: @escaping @Sendable ([String]) -> Bool,
                 transform: @escaping @Sendable ([String]) -> [String]) {
         self.id = id
         self.name = name
         self.group = group
+        self.description = description
         self.canApplyLines = canApply
         self.transform = transform
     }
@@ -32,10 +34,10 @@ public struct LineTransformer: Transformer, LineAware {
 }
 
 extension LineTransformer {
-    public static let sort = LineTransformer(id: "lines.sort", name: "Sort lines",
+    public static let sort = LineTransformer(id: "lines.sort", name: "Sort lines", description: "byte order",
                                              canApply: { $0.count > 1 }, transform: sortedBytewise)
 
-    public static let sortUnique = LineTransformer(id: "lines.sortUnique", name: "Sort lines unique",
+    public static let sortUnique = LineTransformer(id: "lines.sortUnique", name: "Sort lines unique", description: "sort, drop duplicates",
                                                    canApply: { $0.count > 1 }) { lines in
         var result: [String] = []
         for line in sortedBytewise(lines) where result.last != line { result.append(line) }
@@ -45,31 +47,31 @@ extension LineTransformer {
     public static let reverse = LineTransformer(id: "lines.reverse", name: "Reverse lines",
                                                 canApply: { $0.count > 1 }) { $0.reversed() }
 
-    public static let unique = LineTransformer(id: "lines.unique", name: "Unique lines",
+    public static let unique = LineTransformer(id: "lines.unique", name: "Unique lines", description: "keep the first of each, order kept",
                                                canApply: { $0.count > 1 }) { lines in
         var seen = Set<String>()
         return lines.filter { seen.insert($0).inserted }
     }
 
-    public static let removeBlank = LineTransformer(id: "lines.removeBlank", name: "Remove blank lines",
+    public static let removeBlank = LineTransformer(id: "lines.removeBlank", name: "Remove blank lines", description: "drop whitespace-only lines",
                                                     canApply: { $0.contains(where: isBlank) }) { $0.filter { !isBlank($0) } }
 
-    public static let trimTrailing = LineTransformer(id: "lines.trimTrailing", name: "Trim trailing whitespace",
+    public static let trimTrailing = LineTransformer(id: "lines.trimTrailing", name: "Trim trailing whitespace", description: "drop spaces at line ends",
                                                      canApply: { $0.contains { $0.last?.isWhitespace == true } }) {
         $0.map { String($0.reversed().drop(while: \.isWhitespace).reversed()) }
     }
 
-    public static let trim = LineTransformer(id: "lines.trim", name: "Trim each line",
+    public static let trim = LineTransformer(id: "lines.trim", name: "Trim each line", description: "drop spaces at both ends",
                                              canApply: { $0.contains { $0.first?.isWhitespace == true || $0.last?.isWhitespace == true } }) {
         $0.map { $0.trimmingCharacters(in: .whitespaces) }
     }
 
-    public static let indent = LineTransformer(id: "lines.indent", name: "Indent", canApply: { _ in true }) { lines in
+    public static let indent = LineTransformer(id: "lines.indent", name: "Indent", description: "4 spaces, or a tab if any line has one", canApply: { _ in true }) { lines in
         let unit = lines.contains { $0.hasPrefix("\t") } ? "\t" : "    "
         return lines.map { $0.isEmpty ? $0 : unit + $0 }
     }
 
-    public static let dedent = LineTransformer(id: "lines.dedent", name: "Dedent",
+    public static let dedent = LineTransformer(id: "lines.dedent", name: "Dedent", description: "drop the common leading whitespace",
                                                canApply: { lines in
         let content = lines.filter { !isBlank($0) }
         return !content.isEmpty && content.allSatisfy { $0.first?.isWhitespace == true }
@@ -83,18 +85,18 @@ extension LineTransformer {
         return lines.map { isBlank($0) ? $0 : String($0.dropFirst(common.count)) }
     }
 
-    public static let joinSpace = LineTransformer(id: "lines.joinSpace", name: "Join lines with space",
+    public static let joinSpace = LineTransformer(id: "lines.joinSpace", name: "Join lines with space", description: "trim lines, join with one space",
                                                   canApply: { $0.count > 1 }) { [$0.map(trimmed).joined(separator: " ")] }
 
-    public static let joinComma = LineTransformer(id: "lines.joinComma", name: "Join lines with \", \"",
+    public static let joinComma = LineTransformer(id: "lines.joinComma", name: "Join lines with \", \"", description: "trim lines, join with a comma",
                                                   canApply: { $0.count > 1 }) { [$0.map(trimmed).joined(separator: ", ")] }
 
-    public static let splitComma = LineTransformer(id: "lines.splitComma", name: "Split by comma",
+    public static let splitComma = LineTransformer(id: "lines.splitComma", name: "Split by comma", description: "one part per line, trimmed",
                                                    canApply: { $0.contains { $0.contains(",") } }) { lines in
         lines.flatMap { $0.split(separator: ",", omittingEmptySubsequences: false).map { trimmed(String($0)) } }
     }
 
-    public static let splitSpace = LineTransformer(id: "lines.splitSpace", name: "Split by whitespace",
+    public static let splitSpace = LineTransformer(id: "lines.splitSpace", name: "Split by whitespace", description: "one word per line",
                                                    canApply: { $0.count == 1 && $0[0].trimmingCharacters(in: .whitespaces).contains(where: \.isWhitespace) }) { lines in
         lines.flatMap { $0.split(whereSeparator: \.isWhitespace).map(String.init) }
     }

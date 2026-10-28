@@ -43,6 +43,7 @@ public struct Base64DecodeTransformer: Transformer {
 public struct URLEncodeTransformer: Transformer {
     public let id = "url.encode"
     public let name = "URL encode"
+    public let description = "all but A-Z a-z 0-9 - . _ ~"
     public let group = TransformerGroup.encoding
     private static let unreserved = CharacterSet(charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~")
     public init() {}
@@ -55,6 +56,7 @@ public struct URLEncodeTransformer: Transformer {
 public struct URLDecodeTransformer: Transformer {
     public let id = "url.decode"
     public let name = "URL decode"
+    public let description = "%XX only, + is kept"
     public let group = TransformerGroup.encoding
     private static let escape = try! NSRegularExpression(pattern: "%[0-9A-Fa-f]{2}")
     public init() {}
@@ -72,6 +74,7 @@ public struct URLDecodeTransformer: Transformer {
 public struct JSONEscapeTransformer: Transformer {
     public let id = "json.escape"
     public let name = "JSON string escape"
+    public let description = "wrap in quotes, escape"
     public let group = TransformerGroup.encoding
     public init() {}
     public func canApply(to text: String) -> Bool { true }
@@ -86,6 +89,7 @@ public struct JSONEscapeTransformer: Transformer {
 public struct JSONUnescapeTransformer: Transformer {
     public let id = "json.unescape"
     public let name = "JSON string unescape"
+    public let description = "from a quoted literal"
     public let group = TransformerGroup.encoding
     public init() {}
 

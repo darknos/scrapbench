@@ -21,8 +21,14 @@ public protocol Transformer: Sendable {
     var id: String { get }
     var name: String { get }
     var group: TransformerGroup { get }
+    /// Shown dimmed at the right of the palette row; empty when the name says it all.
+    var description: String { get }
     func canApply(to text: String) -> Bool
     func apply(_ text: String) throws -> String
+}
+
+public extension Transformer {
+    var description: String { "" }
 }
 
 public struct TransformError: Error, Equatable, Sendable {

@@ -63,6 +63,7 @@ public enum CommandSplitter {
 public struct SplitCommandTransformer: Transformer, LineAware {
     public let id = "cli.split"
     public let name = "Split command"
+    public let description = "one flag per line, \\ continuations"
     public let group = TransformerGroup.cli
     public init() {}
 
@@ -84,15 +85,15 @@ public struct SplitCommandTransformer: Transformer, LineAware {
 public enum CLITransformers {
     public static let split = SplitCommandTransformer()
 
-    public static let join = LineTransformer(id: "cli.join", name: "Join command", group: .cli,
+    public static let join = LineTransformer(id: "cli.join", name: "Join command", group: .cli, description: "strip trailing \\, one line",
                                              canApply: { $0.count > 1 }) { [CommandSplitter.joinLines($0)] }
 
-    public static let comment = LineTransformer(id: "cli.comment", name: "Comment lines", group: .cli,
+    public static let comment = LineTransformer(id: "cli.comment", name: "Comment lines", group: .cli, description: "prefix lines with # ",
                                                 canApply: { $0.contains { !$0.isEmpty && !isCommented($0) } }) {
         $0.map { $0.isEmpty ? $0 : "# " + $0 }
     }
 
-    public static let uncomment = LineTransformer(id: "cli.uncomment", name: "Uncomment lines", group: .cli,
+    public static let uncomment = LineTransformer(id: "cli.uncomment", name: "Uncomment lines", group: .cli, description: "drop the leading # ",
                                                   canApply: { lines in
         let content = lines.filter { !$0.isEmpty }
         return !content.isEmpty && content.allSatisfy(isCommented)

@@ -28,6 +28,7 @@ public enum Calculator {
 public struct CalculateTransformer: Transformer, LineAware {
     public let id = "calc.evaluate"
     public let name = "Calculate"
+    public let description = "3+4 = 7, one line each"
     public let group = TransformerGroup.math
     private static let operators = CharacterSet(charactersIn: "+-*/%(")
     public init() {}
