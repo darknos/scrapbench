@@ -1,9 +1,13 @@
+<img src="docs/icon.png" width="96" alt="" align="left">
+
 # Scrapbench
 
 A workbench for text scraps, living in the macOS menu bar. One plain-text
 file, a floating editor with syntax highlighting, a timestamped separator
 per session. Press the hotkey, paste, split, fix that long command line,
 jot the thought, press `Esc` — saved and hidden.
+
+<br clear="left">
 
 ![Paste a command, split it; paste JSON, pretty-print it; epoch, calculator, base64: each scrap under its own timestamp](docs/demo.gif)
 
