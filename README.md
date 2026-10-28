@@ -10,6 +10,7 @@ jot the thought, press `Esc` — saved and hidden.
 ## Install
 
 ```sh
+brew trust darknos/scrapbench      # Homebrew asks this once for third-party taps
 brew install darknos/scrapbench/scrapbench
 ```
 
