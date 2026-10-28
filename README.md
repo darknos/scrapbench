@@ -109,7 +109,7 @@ separator if the panel was hidden. Assign it a global shortcut in
 System Settings → Keyboard → Keyboard Shortcuts → Services → Text.
 The service appears once the app has been launched from `/Applications`.
 
-Design: `docs/superpowers/specs/2026-10-26-daily-notes-design.md`.
+Design: `docs/specs/2026-10-26-daily-notes-design.md`.
 
 ## Author
 

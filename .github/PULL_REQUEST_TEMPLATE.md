@@ -9,5 +9,5 @@
 ## Checklist
 
 - [ ] `make test` passes
-- [ ] Behaviour change is reflected in the spec under `docs/superpowers/specs/`
+- [ ] Behaviour change is reflected in the spec under `docs/specs/`
 - [ ] README and Help text updated if a key or setting changed

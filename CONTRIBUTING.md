@@ -16,7 +16,7 @@ the app. `CLAUDE.md` describes the architecture and the manual-testing setup.
 
 ## Changes
 
-- The design specs in `docs/superpowers/specs/` describe the behaviour. A change
+- The design specs in `docs/specs/` describe the behaviour. A change
   in behaviour changes the spec in the same pull request.
 - Core changes come with tests. App changes describe in the pull request how
   they were verified by hand.
@@ -24,7 +24,7 @@ the app. `CLAUDE.md` describes the architecture and the manual-testing setup.
 - Commit messages follow `type(scope): subject`, for example
   `fix(core): Base64 decode ignores short words`. Types: `feat`, `fix`, `perf`,
   `refactor`, `docs`, `chore`. Scopes: `core`, `app`.
-- UI text follows `docs/brand.md`: short sentences, no exclamation marks, the
+- UI text follows `docs/style.md`: short sentences, no exclamation marks, the
   vocabulary scrap / bench / transformer.
 
 ## Reporting bugs

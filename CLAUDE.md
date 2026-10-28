@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Scrapbench: a macOS-only menu bar app (Swift Package, no `.xcodeproj`), a workbench for text
 scraps: one plain-text file edited in a floating panel. Each open appends a timestamped separator
-line; `Esc` saves and hides. The design spec in `docs/superpowers/specs/2026-10-26-daily-notes-design.md` is the
+line; `Esc` saves and hides. The design spec in `docs/specs/2026-10-26-daily-notes-design.md` is the
 authority on behaviour; update it when behaviour changes.
 
 ## Commands
@@ -56,7 +56,7 @@ Two targets with different language modes (see `Package.swift`):
     order, `FuzzyMatcher` for the palette. Line-based transformers go through `Lines`, which owns
     the trailing-newline and CRLF rules. `Calculator` wraps the `Expression` package (the only
     dependency of Core); JSON pretty/minify is a token-level reformatter so key order survives.
-    Spec: `docs/superpowers/specs/2026-10-27-transformers-design.md`.
+    Spec: `docs/specs/2026-10-27-transformers-design.md`.
   - `Highlighting/` — `SyntaxHighlighter` returns `Token`s (UTF-16 `NSRange` + `TokenKind`) for a
     range. `MarkdownHighlighter` runs Markdown-lite rules outside fenced blocks and delegates
     fenced blocks to a `CodeGrammar` picked by language (`Grammars/`). `CodeBlockMap` locates
@@ -120,8 +120,9 @@ Two targets with different language modes (see `Package.swift`):
 
 ## Brand and naming
 
-`docs/brand.md` is the authority on name, vocabulary, voice and visual boundaries; read it
-before touching UI copy, README, icons or anything user-facing. The parts that affect code:
+`docs/style.md` is the authority on name, vocabulary, voice and visual boundaries; read it
+before touching UI copy, README, icons or anything user-facing. `docs/internal/` (git-ignored)
+holds the full brand brief and the implementation plans. The parts that affect code:
 
 - The name is `Scrapbench` — one word, capital S only. Never `ScrapBench`, never `SB`.
 - Vocabulary: *scrap* = one fragment between separators, *bench* = the panel, *tool* /

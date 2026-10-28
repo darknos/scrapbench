@@ -5,3 +5,5 @@ build/
 *.xcodeproj
 .swiftpm/
 .secrets/
+docs/internal/
+.claude/settings.json
