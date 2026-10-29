@@ -54,13 +54,110 @@ The first 20 lines are scanned for comment lines of the form `# @key value`
 | `@description` | no | | short text at the right of the row |
 | `@timeout` | no | `30` | seconds, a positive integer |
 | `@service` | no | | also offer the script as a macOS Service, see below |
+| `@model`, `@provider`, `@effort` | no | | prompt transformers only, see below |
 
 The id is `script.` plus the file name without its extension; it is what the
 `Recent` row and `⌘⇧K` remember. Two files with the same stem keep the first
 by name; the other is reported.
 
 Files the palette cannot use are listed once per `⌘K` in the banner:
-`2 scripts skipped: improve.sh (no @name), x.py (not executable)`.
+`2 transformers skipped: improve.sh (no @name), x.py (not executable)`.
+
+## Prompt transformers
+
+A `.prompt` file in the same folder is a transformer that needs no
+interpreter and no executable bit: the header is the same `# @key value`
+block, the rest of the file is the system prompt. Scrapbench sends the scrap
+as the user message to the AI provider from Settings → AI and replaces the
+scrap with the answer, the way it applies a script's stdout. The answer is
+trimmed of trailing line breaks and nothing else.
+
+```text
+# @name Improve text
+# @group AI
+# @description fixes mistakes, keeps tone and language
+
+The user message is a piece of text to process. Fix spelling, grammar and
+punctuation. Keep the language, the tone and the line breaks. Return only
+the corrected text.
+```
+
+Only lines that parse as `@key` comments are removed; a `# Heading` in the
+prompt stays. The id is `prompt.` plus the file name without its extension,
+so `improve.prompt` and `improve.sh` can live side by side. Three keys are
+specific to prompts:
+
+| key | default | meaning |
+|---|---|---|
+| `@model` | the model in Settings | passed as is |
+| `@provider` | the provider in Settings | `anthropic` or `other` |
+| `@effort` | `low` | `low`, `medium`, `high`, `xhigh`, `max`; Anthropic only |
+
+The default `@group` is `AI` and the default `@timeout` is `60`. A file with
+no prompt after the header is reported as `empty prompt`.
+
+### Settings → AI
+
+- **Provider**: `Anthropic` (the Messages API, your own key from
+  [console.anthropic.com](https://console.anthropic.com)) or `Other server`
+  (any Chat Completions API: Ollama, LM Studio, OpenRouter, OpenAI).
+- **API key**: stored in the Keychain, never in the preferences file. The
+  field shows `Key ends in …a1b2` once a key is stored. Local servers need
+  none. The key can also be stored from a terminal:
+  `pbpaste | /Applications/Scrapbench.app/Contents/MacOS/Scrapbench --set-key anthropic`
+  (`other` for the other server).
+- **Model**: Claude Opus 5.5 by default, Sonnet 5.5 and Haiku 5.5 in the
+  picker, `Other…` for any id. For the other server the model is a text
+  field and has no default.
+- **Base URL**: other server only, `https://api.openai.com/v1` by default.
+- **Test** sends a one-line request and shows `OK · <model> · 1.2 s` or the
+  error.
+
+One request per run: the prompt as the system message, the scrap as the user
+message, `max_tokens` 16000, no streaming, no history. With Anthropic the
+request also carries `output_config.effort` and, except for Haiku,
+`fallbacks: "default"`, so a request the safety classifier declines is
+retried on a substitute model inside the same call. You pay your provider
+for the tokens; a scrap costs a fraction of a cent.
+
+### Other servers
+
+| server | base URL | key |
+|---|---|---|
+| Ollama | `http://localhost:11434/v1` | none |
+| LM Studio | `http://localhost:1234/v1` | none |
+| OpenRouter | `https://openrouter.ai/api/v1` | from openrouter.ai |
+| OpenAI | `https://api.openai.com/v1` | from platform.openai.com |
+
+The model is whatever the server lists (`ollama list`). `@effort` is
+ignored with these servers.
+
+### Errors
+
+Shown as `<name>: <message>` in the banner; the text stays as it was.
+
+| message | meaning |
+|---|---|
+| `no API key, see Settings → AI` | Anthropic without a key |
+| `no model, see Settings → AI` | other server without a model |
+| `401 invalid api key`, `403 not allowed`, `404 unknown model or URL` | what the server said |
+| `rate limited`, `overloaded` | 429, 503 or 529; try again |
+| `refused` | the model declined |
+| `output too long` | the answer hit `max_tokens` |
+| `empty output` | the answer was blank |
+| `bad response` | not JSON, or JSON without an answer (a captive portal, a wrong URL) |
+| `offline`, `timed out after N s` | no connection, or the request outran `@timeout` |
+
+The full body of a failed request goes to the console log, not to the banner.
+
+### Prompts as Services
+
+`# @service` works on a prompt too. The workflow bundle cannot run a prompt
+file, so it runs the app headless instead:
+`Scrapbench --transform prompt.improve-text`, with the key and settings of
+the same user. The bundle holds the app's path; a moved app needs
+`Register` again. The same command works from a terminal:
+`echo text | /Applications/Scrapbench.app/Contents/MacOS/Scrapbench --transform prompt.improve-text`.
 
 ## While the script runs
 
@@ -81,7 +178,7 @@ Quitting Scrapbench terminates a running script.
 
 ## As a macOS Service
 
-A script with `# @service` in its header can also run outside the bench:
+A script or prompt with `# @service` in its header can also run outside the bench:
 select text in any app, pick `Scrapbench: <name>` from the Services menu,
 and the selection is replaced with the script's output. It is the same file
 that serves the palette.
@@ -114,8 +211,12 @@ running. Four things differ from the bench:
 
 ## Examples
 
-Both AI examples use the Claude Code CLI; `claude` has to be signed in. They
-are the Automator services many people run today, moved into a file.
+The AI examples come in two forms: a `.prompt` file (`improve-text.prompt`,
+`translate-to-english.prompt`, `corporate-style.prompt`, `summarize.prompt`),
+which needs a key in Settings → AI and nothing else, and a `.sh` twin that
+pipes the same prompt through the Claude Code CLI (`claude` has to be
+signed in). They are the Automator services many people run today, moved
+into a file.
 
 `improve-text.sh`:
 
@@ -158,3 +259,4 @@ exec jq .
 - `@match <regex>` to list a script only when the text matches.
 - Per-transformer shortcuts.
 - The selection and the whole scrap as separate inputs.
+- Streaming the answer into the editor; a chat with history.

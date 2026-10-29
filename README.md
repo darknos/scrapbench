@@ -109,19 +109,26 @@ Drop an executable file into
 on stdin, the result goes out on stdout, a `# @name` comment on top gives
 it a name. Press `⌘K`: it is in the list, next to the built-ins.
 
-Scripts run without blocking the editor, so a round trip to an AI model
-fits in. `Examples/transformers/` has four ready to copy:
+An AI tool is simpler still: a `.prompt` file with the same header and the
+prompt below it. Put your own Anthropic key in Settings → AI, or point it
+at Ollama, LM Studio, OpenRouter or OpenAI; the scrap goes to the model and
+the answer replaces it.
 
-- **Improve text**: fix mistakes, keep tone and language, via the Claude Code CLI
+Scripts run without blocking the editor, so a round trip to an AI model
+fits in. `Examples/transformers/` has these ready to copy, as `.prompt` files and as
+scripts through the Claude Code CLI:
+
+- **Improve text**: fix mistakes, keep tone and language
 - **Translate to English**: same file, another prompt; change the language once to get Bulgarian or German
 - **Corporate style**: fixes the text, makes it fit for the whole company and translates it to English, whatever mood it was written in
+- **Summarize**: three sentences, same language, on Haiku
 - **JSON pretty (jq)**: any shell tool works the same way
 
 Select a paragraph, `⌘K`, `impr`, `Enter`, keep typing. The result lands
 when it is ready: in place if the text is still there, as a new scrap
 below if you moved on. Details in [docs/transformers.md](docs/transformers.md).
 
-Add `# @service` to a script and press `Register` in Settings: it
+Add `# @service` to a script or prompt and press `Register` in Settings: it
 also appears as `Scrapbench: <name>` in the Services menu of every app and
 replaces the selection there, with a shortcut of its own from System
 Settings → Keyboard → Keyboard Shortcuts → Services.

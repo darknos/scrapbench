@@ -7,6 +7,9 @@ import ScrapbenchCore
 /// an item the app wrote itself is one the app can read without a prompt.
 enum HeadlessTransform {
     static func setKey(account: String) -> Int32 {
+        guard !Distribution.isSandboxed else {
+            return fail("not available in this build")
+        }
         guard account == Settings.anthropicKeyAccount || account == Settings.otherKeyAccount else {
             return fail("unknown account \(account); use anthropic or other")
         }
