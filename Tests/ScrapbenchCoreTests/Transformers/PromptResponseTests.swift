@@ -66,6 +66,7 @@ import Testing
         #expect(parse(.anthropic, 400, #"{"error":{"type":"invalid_request_error","message":"max_tokens: too large"}}"#) == error("400 max_tokens: too large"))
         #expect(parse(.anthropic, 400, #"{"error":{"type":"invalid_request_error"}}"#) == error("400 invalid_request_error"))
         #expect(parse(.other, 500, "oops") == error("500 error"))
+        #expect(parse(.other, 400, #"{"error":{"message":"Unsupported parameter: max_tokens"}}"#) == error("400 unsupported parameter: max_tokens"))
         #expect(parse(.other, 500, #"{"error":"model 'x' not found"}"#) == error("500 model 'x' not found"))
         let long = String(repeating: "x", count: 100)
         #expect(parse(.other, 400, #"{"error":{"message":"\#(long)"}}"#) == error("400 " + String(repeating: "x", count: 80)))

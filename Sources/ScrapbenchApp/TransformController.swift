@@ -144,7 +144,7 @@ final class TransformController {
             return
         }
         let endpoint: PromptEndpoint
-        switch PromptEndpoint.resolve(for: prompt, settings: Settings.shared.aiSettings()) {
+        switch PromptEndpoint.resolve(for: prompt, settings: Settings.shared.aiSettings(for: prompt.provider)) {
         case .failure(let error):
             banner.flash("\(prompt.name): \(error.message)")
             return

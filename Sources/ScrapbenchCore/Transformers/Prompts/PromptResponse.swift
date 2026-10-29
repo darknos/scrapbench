@@ -76,7 +76,7 @@ public enum PromptResponse {
             let error = json?["error"] as? [String: Any]
             let detail = (error?["message"] as? String) ?? (error?["type"] as? String)
                 ?? (json?["error"] as? String) ?? "error"
-            return "\(status) " + String(detail.prefix(messageLimit))
+            return "\(status) " + String(detail.prefix(messageLimit)).lowercased()
         }
     }
 }

@@ -94,11 +94,15 @@ final class Settings: ObservableObject {
         defaults.string(forKey: "aiAnthropicBaseURL") ?? AISettings.defaultAnthropicBaseURL
     }
 
-    func aiSettings() -> AISettings {
-        AISettings(provider: aiProvider, anthropicModel: aiAnthropicModel, anthropicBaseURL: aiAnthropicBaseURL,
-                   anthropicKey: Keychain.read(account: Self.anthropicKeyAccount),
-                   otherModel: aiOtherModel, otherBaseURL: aiOtherBaseURL,
-                   otherKey: Keychain.read(account: Self.otherKeyAccount))
+    /// Reads only the key of the provider that will be used (`override`,
+    /// else the one in Settings): every Keychain read can raise an access
+    /// dialog, and the other provider's key is not needed.
+    func aiSettings(for override: PromptProvider? = nil) -> AISettings {
+        let provider = override ?? aiProvider
+        return AISettings(provider: aiProvider, anthropicModel: aiAnthropicModel, anthropicBaseURL: aiAnthropicBaseURL,
+                          anthropicKey: provider == .anthropic ? Keychain.read(account: Self.anthropicKeyAccount) : nil,
+                          otherModel: aiOtherModel, otherBaseURL: aiOtherBaseURL,
+                          otherKey: provider == .other ? Keychain.read(account: Self.otherKeyAccount) : nil)
     }
 
     func applyAppearance() {

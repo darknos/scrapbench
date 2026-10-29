@@ -33,7 +33,10 @@ struct SettingsView: View {
         .frame(width: 440)
         .fixedSize(horizontal: false, vertical: true)
         .onAppear(perform: refreshServices)
-        .onAppear(perform: refreshKey)
+        .onAppear {
+            refreshKey()
+            customAnthropicModel = !AISettings.anthropicModels.contains(settings.aiAnthropicModel)
+        }
         .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { note in
             guard (note.object as? NSWindow)?.title == "Scrapbench Settings" else { return }
             refreshServices()
@@ -147,6 +150,8 @@ struct SettingsView: View {
                 }
                 .onChange(of: settings.aiProvider) { _, _ in
                     keyDraft = ""
+                    testRunner?.cancel()
+                    testRunner = nil
                     testStatus = nil
                     refreshKey()
                 }
@@ -216,11 +221,10 @@ struct SettingsView: View {
     private func refreshKey() {
         keyError = nil
         if let key = Keychain.read(account: keyAccount), !key.isEmpty {
-            keyHint = "Key ends in …" + String(key.suffix(4))
+            keyHint = key.count > 4 ? "Key ends in …" + String(key.suffix(4)) : "Key stored"
         } else {
             keyHint = nil
         }
-        customAnthropicModel = !AISettings.anthropicModels.contains(settings.aiAnthropicModel)
     }
 
     private func saveKey() {

@@ -33,7 +33,7 @@ enum HeadlessTransform {
         }
         let input = String(decoding: FileHandle.standardInput.readDataToEndOfFile(), as: UTF8.self)
         let endpoint: PromptEndpoint
-        switch PromptEndpoint.resolve(for: prompt, settings: Settings.shared.aiSettings()) {
+        switch PromptEndpoint.resolve(for: prompt, settings: Settings.shared.aiSettings(for: prompt.provider)) {
         case .failure(let error): return fail("\(prompt.name): \(error.message)")
         case .success(let resolved): endpoint = resolved
         }
@@ -43,7 +43,7 @@ enum HeadlessTransform {
         let done = DispatchSemaphore(value: 0)
         var result: Result<String, TransformError> = .failure(TransformError("no result"))
         runner.start { result = $0; done.signal() }
-        done.wait()
+        withExtendedLifetime(runner) { done.wait() }
         switch result {
         case .failure(let error):
             return fail("\(prompt.name): \(error.message)")
