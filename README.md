@@ -18,10 +18,10 @@ brew trust darknos/scrapbench      # Homebrew asks this once for third-party tap
 brew install darknos/scrapbench/scrapbench
 ```
 
-Or download `Scrapbench-<version>.zip` from the
-[latest release](https://github.com/darknos/scrapbench/releases/latest) and drop
-`Scrapbench.app` into `/Applications`. Releases are signed with a Developer ID and
-notarized. macOS 14 or later.
+Or download `Scrapbench-<version>.dmg` from the
+[latest release](https://github.com/darknos/scrapbench/releases/latest) and drag
+`Scrapbench.app` into `Applications` (a `.zip` is there too). Releases are signed
+with a Developer ID and notarized. macOS 14 or later.
 
 ## Build
 

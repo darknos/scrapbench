@@ -75,12 +75,15 @@ jobs:
           export APPLE_API_KEY_PATH="$RUNNER_TEMP/AuthKey.p8"
           printf '%s' "$APPLE_API_KEY_P8" > "$APPLE_API_KEY_PATH"
           Scripts/notarize.sh build/Scrapbench.app "build/Scrapbench-$VERSION.zip"
+          make dmg SIGN="$SIGN"
+          Scripts/notarize.sh "build/Scrapbench-$VERSION.dmg"
           rm "$APPLE_API_KEY_PATH"
 
       - name: Checksum
         run: |
           cd build
           shasum -a 256 "Scrapbench-$VERSION.zip" | tee "Scrapbench-$VERSION.zip.sha256"
+          shasum -a 256 "Scrapbench-$VERSION.dmg" | tee "Scrapbench-$VERSION.dmg.sha256"
 
       - name: GitHub release
         env:
@@ -88,6 +91,7 @@ jobs:
         run: |
           gh release create "$GITHUB_REF_NAME" \
             "build/Scrapbench-$VERSION.zip" "build/Scrapbench-$VERSION.zip.sha256" \
+            "build/Scrapbench-$VERSION.dmg" "build/Scrapbench-$VERSION.dmg.sha256" \
             --title "Scrapbench $VERSION" --generate-notes --verify-tag
 
       - name: Update Homebrew tap

@@ -15,6 +15,7 @@ authority on behaviour; update it when behaviour changes.
 make app                                    # release build → build/Scrapbench.app (ad-hoc signed)
 make app SIGN="Developer ID Application: …" # sign with a real identity (hardened runtime)
 make run                                    # build + open the app
+make dmg                                    # after make app: build/Scrapbench-<version>.dmg (app + Applications link)
 make test                                   # = swift test (ScrapbenchCore only)
 swift test --filter ScrapFormatterTests                      # one suite
 swift test --filter ScrapFormatterTests/openOnEmptyText      # one test
