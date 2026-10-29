@@ -41,6 +41,12 @@ import Testing
         #expect((try? parse("@name Not a comment\n# @name A\n# @colour red\n").get())?.name == "A")
     }
 
+    @Test func crlfHeaderLines() {
+        let h = try? parse("#!/bin/sh\r\n# @name A\r\n# @timeout 5\r\n").get()
+        #expect(h?.name == "A")
+        #expect(h?.timeout == 5)
+    }
+
     @Test func firstOccurrenceWins() {
         #expect((try? parse("# @name A\n# @name B\n").get())?.name == "A")
     }

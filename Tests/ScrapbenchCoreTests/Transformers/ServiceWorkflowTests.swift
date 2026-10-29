@@ -66,7 +66,14 @@ import Testing
         let e = p.serviceEntry(executable: "/Applications/Scrap's.app/Contents/MacOS/Scrapbench")
         #expect(e.id == "prompt.improve-text")
         #expect(e.path == "/t/improve-text.prompt")
-        #expect(e.command == "export LANG=en_US.UTF-8\nexec '/Applications/Scrap'\\''s.app/Contents/MacOS/Scrapbench' --transform prompt.improve-text")
+        #expect(e.command == "export LANG=en_US.UTF-8\nexec '/Applications/Scrap'\\''s.app/Contents/MacOS/Scrapbench' --transform 'prompt.improve-text'")
         #expect(ServiceWorkflow(entry: e).infoPlist[ServiceWorkflow.scriptIDKey] as? String == "prompt.improve-text")
+    }
+
+    @Test func promptEntryQuotesTheID() {
+        let p = PromptTransformer(header: ScriptHeader(name: "Fix", service: true), body: "x",
+                                  url: URL(fileURLWithPath: "/t/Fix my $text.prompt"))
+        let e = p.serviceEntry(executable: "/A/Scrapbench")
+        #expect(e.command.hasSuffix("exec '/A/Scrapbench' --transform 'prompt.Fix my $text'"))
     }
 }

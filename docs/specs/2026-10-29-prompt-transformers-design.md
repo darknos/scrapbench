@@ -104,8 +104,8 @@ that provider's fields and keeps the other's values.
   the app appends `/chat/completions`. Anthropic always goes to
   `https://api.anthropic.com`.
 - `Test`: sends `Reply with OK.` through the same code path as a transformer
-  (system prompt `You are a connectivity test.`, `max_tokens` 16, timeout
-  15 s) and shows the outcome under the button: `OK · claude-opus-5-5 · 1.2 s`
+  (system prompt `You are a connectivity test.`, `max_tokens` 1024, since
+  thinking tokens count against the cap, timeout 15 s) and shows the outcome under the button: `OK · claude-opus-5-5 · 1.2 s`
   in secondary colour, or the error text in red. The button is disabled
   while a test runs.
 
@@ -120,7 +120,9 @@ model) fails before any request: `<name>: no API key, see Settings → AI`.
 
 One request per run: a system prompt, one user message holding the target
 text exactly as it is in the editor, no streaming, no tools, no history.
-`max_tokens` is 16000 for both providers. The timeout is the prompt's
+`max_tokens` is 16000 for Anthropic; the other server gets no cap, because
+OpenAI's reasoning models reject `max_tokens` and every listed server has
+a default of its own. The timeout is the prompt's
 `@timeout`, applied to the whole request.
 
 ### Anthropic
@@ -163,7 +165,6 @@ and, when a key is stored, `authorization: Bearer <key>`. Body:
 ```json
 {
   "model": "<model>",
-  "max_tokens": 16000,
   "messages": [
     {"role": "system", "content": "<prompt body>"},
     {"role": "user", "content": "<target text>"}
@@ -197,6 +198,7 @@ Shown as `<name>: <message>`, short and lower-case, like every
 | HTTP 529 or 503 | `overloaded` |
 | other non-2xx | `<status> <first 80 chars of error.message, or error.type>` |
 | no connection | `offline` |
+| plain `http://` to a non-local host (App Transport Security) | `http needs https, see Settings → AI` |
 | timeout | `timed out after N s` |
 | unparsable body | `bad response` |
 

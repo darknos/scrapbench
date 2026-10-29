@@ -27,9 +27,10 @@ public enum PromptRequest {
         var request = URLRequest(url: url(for: endpoint))
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "content-type")
-        var body: [String: Any] = ["model": endpoint.model, "max_tokens": maxTokens]
+        var body: [String: Any] = ["model": endpoint.model]
         switch endpoint.provider {
         case .anthropic:
+            body["max_tokens"] = maxTokens
             request.setValue(endpoint.apiKey, forHTTPHeaderField: "x-api-key")
             request.setValue(anthropicVersion, forHTTPHeaderField: "anthropic-version")
             body["system"] = systemPrompt
@@ -40,6 +41,8 @@ public enum PromptRequest {
                 body["fallbacks"] = "default"
             }
         case .other:
+            // No output cap: OpenAI's reasoning models reject `max_tokens`
+            // and every listed server has a default of its own.
             if let key = endpoint.apiKey {
                 request.setValue("Bearer " + key, forHTTPHeaderField: "authorization")
             }

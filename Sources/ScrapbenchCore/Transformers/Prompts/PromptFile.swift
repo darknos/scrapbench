@@ -13,6 +13,7 @@ public enum PromptFile {
     }
 
     public static func parse(_ text: String, file: String) -> Result<Parsed, ScriptProblem> {
+        let text = ScriptHeader.normalized(text)
         let header: ScriptHeader
         switch ScriptHeader.parse(text, file: file, defaultTimeout: defaultTimeout, defaultGroup: .ai) {
         case .failure(let problem): return .failure(problem)

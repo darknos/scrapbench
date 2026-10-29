@@ -114,7 +114,8 @@ no prompt after the header is reported as `empty prompt`.
   error.
 
 One request per run: the prompt as the system message, the scrap as the user
-message, `max_tokens` 16000, no streaming, no history. With Anthropic the
+message, no streaming, no history (`max_tokens` 16000 with Anthropic; the
+other server keeps its own default). With Anthropic the
 request also carries `output_config.effort` and, except for Haiku,
 `fallbacks: "default"`, so a request the safety classifier declines is
 retried on a substitute model inside the same call. You pay your provider
@@ -147,6 +148,8 @@ Shown as `<name>: <message>` in the banner; the text stays as it was.
 | `empty output` | the answer was blank |
 | `bad response` | not JSON, or JSON without an answer (a captive portal, a wrong URL) |
 | `offline`, `timed out after N s` | no connection, or the request outran `@timeout` |
+| `http needs https, see Settings → AI` | plain `http://` works for `localhost`, IP addresses and `.local` names only |
+| `bad base URL, see Settings → AI` | the base URL has no scheme or host |
 
 The full body of a failed request goes to the console log, not to the banner.
 

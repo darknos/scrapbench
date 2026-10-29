@@ -20,6 +20,7 @@ import Testing
 
     @Test func anthropicStopReasons() {
         #expect(parse(.anthropic, 200, #"{"stop_reason":"refusal","content":[]}"#) == error("refused"))
+        #expect(parse(.anthropic, 200, #"{"stop_reason":"refusal"}"#) == error("refused"))
         #expect(parse(.anthropic, 200, #"{"stop_reason":"max_tokens","content":[{"type":"text","text":"x"}]}"#) == error("output too long"))
     }
 
@@ -27,6 +28,10 @@ import Testing
         #expect(parse(.other, 200, #"{"choices":[{"finish_reason":"stop","message":{"role":"assistant","content":"Hi\n"}}]}"#) == .success("Hi"))
         #expect(parse(.other, 200, #"{"choices":[{"finish_reason":"length","message":{"content":"x"}}]}"#) == error("output too long"))
         #expect(parse(.other, 200, #"{"choices":[{"finish_reason":"content_filter","message":{"content":""}}]}"#) == error("refused"))
+    }
+
+    @Test func otherRefusalFieldWithNullContent() {
+        #expect(parse(.other, 200, #"{"choices":[{"finish_reason":"stop","message":{"content":null,"refusal":"no"}}]}"#) == error("refused"))
     }
 
     @Test func otherContentAsParts() {
@@ -61,6 +66,7 @@ import Testing
         #expect(parse(.anthropic, 400, #"{"error":{"type":"invalid_request_error","message":"max_tokens: too large"}}"#) == error("400 max_tokens: too large"))
         #expect(parse(.anthropic, 400, #"{"error":{"type":"invalid_request_error"}}"#) == error("400 invalid_request_error"))
         #expect(parse(.other, 500, "oops") == error("500 error"))
+        #expect(parse(.other, 500, #"{"error":"model 'x' not found"}"#) == error("500 model 'x' not found"))
         let long = String(repeating: "x", count: 100)
         #expect(parse(.other, 400, #"{"error":{"message":"\#(long)"}}"#) == error("400 " + String(repeating: "x", count: 80)))
     }
@@ -78,5 +84,6 @@ import Testing
         #expect(PromptResponse.message(forURLError: .cannotFindHost, timeout: 1) == "offline")
         #expect(PromptResponse.message(forURLError: .networkConnectionLost, timeout: 1) == "offline")
         #expect(PromptResponse.message(forURLError: .cancelled, timeout: 1) == "cancelled")
+        #expect(PromptResponse.message(forURLError: .appTransportSecurityRequiresSecureConnection, timeout: 1) == "http needs https, see Settings → AI")
     }
 }

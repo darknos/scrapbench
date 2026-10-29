@@ -49,7 +49,7 @@ import Testing
         #expect(header(r, "content-type") == "application/json")
         let b = try body(r)
         #expect(b["model"] as? String == "llama3")
-        #expect(b["max_tokens"] as? Int == 16000)
+        #expect(b["max_tokens"] == nil && b["max_completion_tokens"] == nil)
         #expect(b["messages"] as? [[String: String]] == [["role": "system", "content": "Fix."], ["role": "user", "content": "hi"]])
         #expect(b["output_config"] == nil && b["fallbacks"] == nil)
     }

@@ -25,6 +25,13 @@ import Testing
         #expect(p?.header.timeout == 60)
     }
 
+    @Test func crlfFilesParse() {
+        let p = try? parse("# @name A\r\n# @group AI\r\n\r\nFix.\r\nKeep.\r\n").get()
+        #expect(p?.header.name == "A")
+        #expect(p?.header.group == TransformerGroup("AI"))
+        #expect(p?.body == "Fix.\nKeep.")
+    }
+
     @Test func emptyBodyIsAProblem() {
         #expect(parse("# @name A\n\n  \n") == .failure(ScriptProblem(file: "x.prompt", reason: "empty prompt")))
     }

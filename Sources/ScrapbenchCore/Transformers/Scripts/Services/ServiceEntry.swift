@@ -37,7 +37,7 @@ public extension PromptTransformer {
     func serviceEntry(executable: String) -> ServiceEntry {
         ServiceEntry(id: id, name: name, path: url.path, command: """
             export LANG=en_US.UTF-8
-            exec \(ServiceEntry.shellQuoted(executable)) --transform \(id)
+            exec \(ServiceEntry.shellQuoted(executable)) --transform \(ServiceEntry.shellQuoted(id))
             """)
     }
 }

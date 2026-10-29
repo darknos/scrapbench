@@ -41,6 +41,7 @@ public struct ScriptHeader: Equatable, Sendable {
     public static func parse(_ text: String, file: String, defaultTimeout: Int = defaultTimeout,
                              defaultGroup: TransformerGroup = .scripts) -> Result<ScriptHeader, ScriptProblem> {
         var values: [String: String] = [:]
+        let text = normalized(text)
         for line in text.split(separator: "\n", maxSplits: maxLines, omittingEmptySubsequences: false).prefix(maxLines) {
             guard let (key, value) = headerLine(line), values[key] == nil else { continue }
             values[key] = value
@@ -78,6 +79,12 @@ public struct ScriptHeader: Equatable, Sendable {
             model: values["model"],
             provider: provider,
             effort: effort))
+    }
+
+    /// `\r\n` is one `Character`, so a CRLF file would not split on `"\n"`.
+    static func normalized(_ text: String) -> String {
+        // `contains("\r")` would miss it for the same reason, so replace unconditionally.
+        text.replacingOccurrences(of: "\r\n", with: "\n")
     }
 
     static func headerLine(_ line: Substring) -> (String, String)? {

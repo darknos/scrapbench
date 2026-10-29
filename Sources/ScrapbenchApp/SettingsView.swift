@@ -39,6 +39,10 @@ struct SettingsView: View {
             refreshServices()
             refreshKey()
         }
+        .onReceive(NotificationCenter.default.publisher(for: NSWindow.willCloseNotification)) { note in
+            guard (note.object as? NSWindow)?.title == "Scrapbench Settings" else { return }
+            saveKey()
+        }
     }
 
     private var generalTab: some View {
@@ -248,7 +252,7 @@ struct SettingsView: View {
             endpoint = resolved
         }
         let request = PromptRequest.build(endpoint: endpoint, systemPrompt: "You are a connectivity test.",
-                                          input: "Reply with OK.", maxTokens: 16)
+                                          input: "Reply with OK.", maxTokens: 1024)
         let runner = PromptRunner(request: request, provider: endpoint.provider, timeout: 15)
         let started = ContinuousClock.now
         testRunner = runner

@@ -14,12 +14,12 @@ public enum PromptResponse {
         let text: String
         switch provider {
         case .anthropic:
-            guard let content = json["content"] as? [[String: Any]] else { return .failure(TransformError("bad response")) }
             switch json["stop_reason"] as? String {
             case "refusal": return .failure(TransformError("refused"))
             case "max_tokens": return .failure(TransformError("output too long"))
             default: break
             }
+            guard let content = json["content"] as? [[String: Any]] else { return .failure(TransformError("bad response")) }
             text = content.filter { $0["type"] as? String == "text" }.compactMap { $0["text"] as? String }.joined()
         case .other:
             guard let choice = (json["choices"] as? [[String: Any]])?.first,
@@ -35,6 +35,8 @@ public enum PromptResponse {
                 text = string
             } else if let parts = message["content"] as? [[String: Any]] {
                 text = parts.compactMap { $0["text"] as? String }.joined()
+            } else if message["refusal"] is String {
+                return .failure(TransformError("refused"))
             } else {
                 return .failure(TransformError("bad response"))
             }
@@ -57,6 +59,7 @@ public enum PromptResponse {
         case .notConnectedToInternet, .networkConnectionLost, .cannotFindHost, .cannotConnectToHost, .dnsLookupFailed:
             return "offline"
         case .cancelled: return "cancelled"
+        case .appTransportSecurityRequiresSecureConnection: return "http needs https" + PromptEndpoint.settingsHint
         default: return URLError(code).localizedDescription.lowercased()
         }
     }
@@ -69,8 +72,10 @@ public enum PromptResponse {
         case 429: return "rate limited"
         case 503, 529: return "overloaded"
         default:
+            // Anthropic and OpenAI nest an object under `error`; Ollama and LM Studio send a string.
             let error = json?["error"] as? [String: Any]
-            let detail = (error?["message"] as? String) ?? (error?["type"] as? String) ?? "error"
+            let detail = (error?["message"] as? String) ?? (error?["type"] as? String)
+                ?? (json?["error"] as? String) ?? "error"
             return "\(status) " + String(detail.prefix(messageLimit))
         }
     }
