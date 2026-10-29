@@ -6,6 +6,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var session: SessionController!
     private var settingsWindow: SettingsWindowController?
     private var helpWindow: HelpWindowController?
+    private var sigterm: DispatchSourceSignal?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         Settings.shared.applyAppearance()
@@ -18,6 +19,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         hotkey = HotkeyController { [weak self] in self?.session.toggle() }
         NSApp.servicesProvider = self
         if CommandLine.arguments.contains("--open") { session.open() }
+        routeSigtermThroughTerminate()
+    }
+
+    /// `kill`/`pkill` would drop the process with the panel open and leave
+    /// the session's empty separator in the file; go through the normal quit.
+    private func routeSigtermThroughTerminate() {
+        signal(SIGTERM, SIG_IGN)
+        let source = DispatchSource.makeSignalSource(signal: SIGTERM, queue: .main)
+        source.setEventHandler { NSApp.terminate(nil) }
+        source.resume()
+        sigterm = source
     }
 
     /// "Take to Scrapbench" service; the selector name must match `NSMessage` in Info.plist.

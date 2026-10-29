@@ -212,7 +212,10 @@ Unit tests (`swift test`, Swift Testing, written TDD-style) for
   then `finalize` with no input removes the separator; with input keeps
   it; `⌘N` on empty scrap replaces timestamp; `⌘N` on non-empty scrap
   appends; `finalize` removes multiple trailing empty session separators
-  but never older ones; edits above the separator survive `finalize`.
+  but never older ones with content; an empty separator already at the end
+  of the file when the panel opens (a session that never closed) is
+  replaced by the fresh one, not stacked under; edits above the separator
+  survive `finalize`.
 - `ScrapStore`: missing file loads empty; save then load round-trips;
   atomic write leaves no temp files; external change raises error and
   writes conflict file; backup created once per day and pruned to 7.

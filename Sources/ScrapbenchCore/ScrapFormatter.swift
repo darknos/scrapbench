@@ -8,9 +8,26 @@ public struct ScrapFormatter {
 
     public init() {}
 
-    /// Called when the panel opens: appends a fresh separator at the end of the text.
+    /// Called when the panel opens: appends a fresh separator at the end of
+    /// the text. An empty separator already at the end (left by a session that
+    /// never closed) is replaced instead, so separators do not pile up.
     public mutating func open(text: String, date: Date) -> (text: String, cursor: Int) {
-        append(separator: Separator.make(date: date), to: text)
+        let separator = Separator.make(date: date)
+        if let orphan = Self.emptyTrailingSeparator(in: text) {
+            let result = text[..<orphan.lowerBound] + separator + "\n"
+            sessionSeparators.append(separator)
+            return (String(result), result.utf16.count)
+        }
+        return append(separator: separator, to: text)
+    }
+
+    /// The range of a separator that is the last non-blank line of `text`.
+    static func emptyTrailingSeparator(in text: String) -> Range<String.Index>? {
+        let trimmed = Substring(text).trimmingSuffix(while: \.isWhitespace)
+        let lineStart = trimmed.lastIndex(of: "\n").map { trimmed.index(after: $0) } ?? trimmed.startIndex
+        let line = trimmed[lineStart...]
+        guard Separator.isSeparatorLine(line) else { return nil }
+        return lineStart..<trimmed.endIndex
     }
 
     /// Called on ⌘N. If the current session scrap is still empty, only the

@@ -49,8 +49,10 @@ Two targets with different language modes (see `Package.swift`):
   reasoned about without AppKit.
   - `Separator` — the `--------------------< yyyy-MM-dd HH:mm >--------------------` line format.
   - `ScrapFormatter` — `open` / `newScrap` / `finalize`. It tracks only the separators *this
-    session* appended; `finalize` strips those left empty and never touches older ones. The
-    separator goes directly on the line after existing text (no blank line).
+    session* appended; `finalize` strips those left empty and never touches older ones. `open`
+    replaces an empty separator already at the end of the file (left by a session that never
+    closed, e.g. a kill) instead of stacking another. The separator goes directly on the line
+    after existing text (no blank line).
   - `ScrapStore` — load/save with a SHA-256 fingerprint; a save against a file that changed on
     disk writes a `.conflict-*` file instead of overwriting; daily backups (7 kept); rescue copies
     on failed writes.

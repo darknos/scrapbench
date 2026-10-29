@@ -58,7 +58,7 @@ import Testing
 
     @Test func finalizeKeepsForeignSeparators() {
         let sep0 = Separator.make(date: localDate(2026, 10, 25, 9, 0))
-        let original = "x\n\n\(sep0)\n"
+        let original = "x\n\n\(sep0)\ny\n"
         var f = ScrapFormatter()
         let t = f.open(text: original, date: d1).text
         #expect(f.finalize(text: t) == original)
@@ -175,5 +175,43 @@ import Testing
         #expect(ScrapFormatter.body(of: chunk) == "a\nb")
         #expect(ScrapFormatter.append(chunk: chunk, to: "x") == "x\na\nb\n")
         #expect(ScrapFormatter.body(of: "  \n") == "")
+    }
+}
+
+@Suite struct ScrapFormatterOrphanTests {
+    let d1 = localDate(2026, 10, 26, 14, 35)
+    let d2 = localDate(2026, 10, 26, 14, 40)
+    var sep1: String { Separator.make(date: d1) }
+    var sep2: String { Separator.make(date: d2) }
+
+    @Test func openReusesAnEmptySeparatorLeftAtTheEnd() {
+        var f = ScrapFormatter()
+        let r = f.open(text: "a\n\(sep1)\n", date: d2)
+        #expect(r.text == "a\n\(sep2)\n")
+        #expect(r.cursor == r.text.utf16.count)
+        #expect(f.sessionSeparators == [sep2])
+    }
+
+    @Test func openReusesAnEmptySeparatorFollowedByBlankLines() {
+        var f = ScrapFormatter()
+        #expect(f.open(text: "a\n\(sep1)\n\n  \n", date: d2).text == "a\n\(sep2)\n")
+        var g = ScrapFormatter()
+        #expect(g.open(text: "a\n\(sep1)", date: d2).text == "a\n\(sep2)\n")
+    }
+
+    @Test func openKeepsASeparatorWithContent() {
+        var f = ScrapFormatter()
+        #expect(f.open(text: "a\n\(sep1)\nb\n", date: d2).text == "a\n\(sep1)\nb\n\(sep2)\n")
+    }
+
+    @Test func openKeepsASeparatorThatIsNotAWholeLine() {
+        var f = ScrapFormatter()
+        #expect(f.open(text: "x \(sep1)\n", date: d2).text == "x \(sep1)\n\(sep2)\n")
+    }
+
+    @Test func reusedSeparatorIsStrippedByFinalizeWhenLeftEmpty() {
+        var f = ScrapFormatter()
+        let t = f.open(text: "a\n\(sep1)\n", date: d2).text
+        #expect(f.finalize(text: t) == "a\n")
     }
 }
