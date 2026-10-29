@@ -2,8 +2,8 @@ import AppKit
 import ScrapbenchCore
 
 /// Runs transformers on the editor's target text and reports problems in the banner.
-/// Built-ins apply at once; script transformers run through `ScriptRunner`
-/// and apply when the result arrives.
+/// Built-ins apply at once; scripts run through `ScriptRunner` and prompts
+/// through `PromptRunner`, and apply when the result arrives.
 final class TransformController {
     static let lastKey = "lastTransformer"
 
@@ -13,7 +13,7 @@ final class TransformController {
     private let header: HeaderView
     private var extras: [any Transformer] = []
     private var pending: PendingTransform?
-    private var runner: ScriptRunner?
+    private var runner: TransformRunner?
     private var lastID: String? {
         get { UserDefaults.standard.string(forKey: Self.lastKey) }
         set { UserDefaults.standard.set(newValue, forKey: Self.lastKey) }
@@ -73,6 +73,10 @@ final class TransformController {
             start(script, range: range, text: text)
             return
         }
+        if let prompt = transformer as? PromptTransformer {
+            start(prompt, range: range, text: text)
+            return
+        }
         do {
             let result = try transformer.apply(text)
             if result != text { editor.replace(range, with: result) }
@@ -100,7 +104,7 @@ final class TransformController {
         pending?.shift(edited: range, delta: (replacement as NSString).length - range.length)
     }
 
-    /// Quit: the script is terminated and its result not awaited.
+    /// Quit: the script is terminated or the request cancelled; the result is not awaited.
     func cancelRunning() {
         runner?.cancel()
         runner = nil
@@ -108,10 +112,10 @@ final class TransformController {
         header.runningName = nil
     }
 
-    // MARK: - Scripts
+    // MARK: - Scripts and prompts
 
     private func rescan(report: Bool) {
-        let scan = ScriptRegistry.scan(directory: Settings.transformersDirectory)
+        let scan = ScriptRegistry.scan(directory: Settings.transformersDirectory, scripts: !Distribution.isSandboxed)
         extras = scan.transformers
         let problems = scan.problems
         guard report, !problems.isEmpty else { return }
@@ -127,6 +131,30 @@ final class TransformController {
         pending = PendingTransform(id: script.id, name: script.name, range: range, text: text)
         header.runningName = script.name
         let runner = ScriptRunner(script: script, input: text, scrapFile: Settings.shared.fileURL)
+        self.runner = runner
+        runner.start { [weak self] result in
+            guard let self, self.runner === runner else { return }
+            self.finish(result)
+        }
+    }
+
+    private func start(_ prompt: PromptTransformer, range: NSRange, text: String) {
+        if let pending {
+            banner.flash("\(pending.name) is running")
+            return
+        }
+        let endpoint: PromptEndpoint
+        switch PromptEndpoint.resolve(for: prompt, settings: Settings.shared.aiSettings()) {
+        case .failure(let error):
+            banner.flash("\(prompt.name): \(error.message)")
+            return
+        case .success(let resolved):
+            endpoint = resolved
+        }
+        pending = PendingTransform(id: prompt.id, name: prompt.name, range: range, text: text)
+        header.runningName = prompt.name
+        let request = PromptRequest.build(endpoint: endpoint, systemPrompt: prompt.systemPrompt, input: text)
+        let runner = PromptRunner(request: request, provider: endpoint.provider, timeout: prompt.timeout)
         self.runner = runner
         runner.start { [weak self] result in
             guard let self, self.runner === runner else { return }
