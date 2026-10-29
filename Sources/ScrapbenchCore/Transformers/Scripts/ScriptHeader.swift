@@ -17,21 +17,29 @@ public struct ScriptHeader: Equatable, Sendable {
     public let description: String
     public let timeout: Int
     public let service: Bool
+    public let model: String?
+    public let provider: PromptProvider?
+    public let effort: Effort?
 
     public static let maxLines = 20
     public static let defaultTimeout = 30
 
-    public init(name: String, group: TransformerGroup = .scripts, description: String = "", timeout: Int = defaultTimeout, service: Bool = false) {
+    public init(name: String, group: TransformerGroup = .scripts, description: String = "", timeout: Int = defaultTimeout,
+                service: Bool = false, model: String? = nil, provider: PromptProvider? = nil, effort: Effort? = nil) {
         self.name = name
         self.group = group
         self.description = description
         self.timeout = timeout
         self.service = service
+        self.model = model
+        self.provider = provider
+        self.effort = effort
     }
 
     /// Reads the first `maxLines` lines; the first occurrence of a key wins.
     /// `file` names the script in the problem.
-    public static func parse(_ text: String, file: String) -> Result<ScriptHeader, ScriptProblem> {
+    public static func parse(_ text: String, file: String, defaultTimeout: Int = defaultTimeout,
+                             defaultGroup: TransformerGroup = .scripts) -> Result<ScriptHeader, ScriptProblem> {
         var values: [String: String] = [:]
         for line in text.split(separator: "\n", maxSplits: maxLines, omittingEmptySubsequences: false).prefix(maxLines) {
             guard let (key, value) = headerLine(line), values[key] == nil else { continue }
@@ -47,15 +55,32 @@ public struct ScriptHeader: Equatable, Sendable {
             }
             timeout = seconds
         }
+        var provider: PromptProvider?
+        if let raw = values["provider"] {
+            guard let value = PromptProvider(rawValue: raw) else {
+                return .failure(ScriptProblem(file: file, reason: "bad @provider"))
+            }
+            provider = value
+        }
+        var effort: Effort?
+        if let raw = values["effort"] {
+            guard let value = Effort(rawValue: raw) else {
+                return .failure(ScriptProblem(file: file, reason: "bad @effort"))
+            }
+            effort = value
+        }
         return .success(ScriptHeader(
             name: name,
-            group: values["group"].map { TransformerGroup($0) } ?? .scripts,
+            group: values["group"].map { TransformerGroup($0) } ?? defaultGroup,
             description: values["description"] ?? "",
             timeout: timeout,
-            service: values["service"] != nil))
+            service: values["service"] != nil,
+            model: values["model"],
+            provider: provider,
+            effort: effort))
     }
 
-    private static func headerLine(_ line: Substring) -> (String, String)? {
+    static func headerLine(_ line: Substring) -> (String, String)? {
         var rest = line.drop(while: { $0 == " " || $0 == "\t" })
         if rest.hasPrefix("#") { rest = rest.dropFirst() }
         else if rest.hasPrefix("//") || rest.hasPrefix("--") { rest = rest.dropFirst(2) }
