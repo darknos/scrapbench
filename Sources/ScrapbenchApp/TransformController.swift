@@ -11,7 +11,7 @@ final class TransformController {
     private let banner: BannerView
     private let palette: PaletteController
     private let header: HeaderView
-    private var scripts: [ScriptTransformer] = []
+    private var extras: [any Transformer] = []
     private var pending: PendingTransform?
     private var runner: ScriptRunner?
     private var lastID: String? {
@@ -27,8 +27,9 @@ final class TransformController {
     /// The last applied transformer, if it still exists.
     var last: (any Transformer)? {
         guard let lastID else { return nil }
-        if lastID.hasPrefix(ScriptTransformer.idPrefix), scripts.isEmpty { rescan(report: false) }
-        return TransformerRegistry.transformer(id: lastID, extra: scripts)
+        let fromFolder = lastID.hasPrefix(ScriptTransformer.idPrefix) || lastID.hasPrefix(PromptTransformer.idPrefix)
+        if fromFolder, extras.isEmpty { rescan(report: false) }
+        return TransformerRegistry.transformer(id: lastID, extra: extras)
     }
 
     init(editor: EditorTextView, banner: BannerView, palette: PaletteController, header: HeaderView) {
@@ -60,7 +61,7 @@ final class TransformController {
             banner.flash("Nothing to transform")
             return nil
         }
-        return TransformerRegistry.applicable(to: target.text, extra: scripts)
+        return TransformerRegistry.applicable(to: target.text, extra: extras)
     }
 
     func run(_ transformer: any Transformer) {
@@ -110,11 +111,12 @@ final class TransformController {
     // MARK: - Scripts
 
     private func rescan(report: Bool) {
-        let (found, problems) = ScriptRegistry.scan(directory: Settings.transformersDirectory)
-        scripts = found
+        let scan = ScriptRegistry.scan(directory: Settings.transformersDirectory)
+        extras = scan.transformers
+        let problems = scan.problems
         guard report, !problems.isEmpty else { return }
         let list = problems.map { "\($0.file) (\($0.reason))" }.joined(separator: ", ")
-        banner.flash("\(problems.count) \(problems.count == 1 ? "script" : "scripts") skipped: \(list)")
+        banner.flash("\(problems.count) \(problems.count == 1 ? "transformer" : "transformers") skipped: \(list)")
     }
 
     private func start(_ script: ScriptTransformer, range: NSRange, text: String) {

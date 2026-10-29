@@ -30,7 +30,7 @@ final class ServiceInstaller {
     }
 
     func plan() -> ServicePlan {
-        let scripts = ScriptRegistry.scan(directory: Settings.transformersDirectory).transformers
+        let scripts = ScriptRegistry.scan(directory: Settings.transformersDirectory).scripts
         return ServicePlan(scripts: scripts, installed: installed())
     }
 
