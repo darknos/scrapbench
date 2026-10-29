@@ -9,7 +9,7 @@ TIMESTAMP = $(if $(filter -,$(SIGN)),--timestamp=none,--timestamp)
 
 ICONS    = $(BUILD)/icons/AppIcon.icns
 
-.PHONY: build app run test clean sample icons
+.PHONY: build app run test clean sample icons dmg
 
 build:
 	swift build -c release --product ScrapbenchApp
@@ -36,6 +36,13 @@ app: build $(ICONS)
 
 run: app
 	open $(BUNDLE)
+
+VERSION = $(shell /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" Resources/Info.plist)
+DMG     = $(BUILD)/$(APP)-$(VERSION).dmg
+
+# Plain image: the app next to an Applications symlink. Needs `make app` first.
+dmg:
+	Scripts/make-dmg.sh $(BUNDLE) $(DMG) "$(SIGN)"
 
 sample:
 	Scripts/make-sample.sh $(BUILD)/sample-scraps.md
