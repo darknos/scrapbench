@@ -10,31 +10,41 @@ public struct InstalledService: Equatable, Sendable {
     }
 }
 
-/// What `Register` would do: the scripts with `@service` against
+/// What `Register` would do: the transformers with `@service` against
 /// the bundles already installed, matched by transformer id.
 public struct ServicePlan {
     public struct Refresh: Equatable {
-        public let script: ScriptTransformer
+        public let entry: ServiceEntry
         public let installed: InstalledService
     }
 
-    public let add: [ScriptTransformer]
+    public let add: [ServiceEntry]
     public let refresh: [Refresh]
     public let remove: [InstalledService]
-    /// Scripts whose bundle name is already taken by an earlier script
+    /// Entries whose bundle name is already taken by an earlier entry
     /// (`@name` compared case-insensitively, as APFS compares folder
     /// names). They are left out; `problem` names them.
-    public let conflicts: [ScriptTransformer]
+    public let conflicts: [ServiceEntry]
 
-    public init(scripts: [ScriptTransformer], installed: [InstalledService]) {
-        var wanted: [ScriptTransformer] = []
-        var conflicts: [ScriptTransformer] = []
+    /// The scripts and prompts marked `@service`, in palette order.
+    /// `executable` is the app binary a prompt's bundle runs.
+    public static func serviceEntries(scripts: [ScriptTransformer], prompts: [PromptTransformer], executable: String) -> [ServiceEntry] {
+        ScanResult(scripts: scripts, prompts: prompts, problems: []).transformers.compactMap { item in
+            if let script = item as? ScriptTransformer, script.service { return script.serviceEntry }
+            if let prompt = item as? PromptTransformer, prompt.service { return prompt.serviceEntry(executable: executable) }
+            return nil
+        }
+    }
+
+    public init(entries: [ServiceEntry], installed: [InstalledService]) {
+        var wanted: [ServiceEntry] = []
+        var conflicts: [ServiceEntry] = []
         var names: Set<String> = []
-        for script in scripts where script.service {
-            if names.insert(ServiceWorkflow(script: script).bundleName.lowercased()).inserted {
-                wanted.append(script)
+        for entry in entries {
+            if names.insert(ServiceWorkflow(entry: entry).bundleName.lowercased()).inserted {
+                wanted.append(entry)
             } else {
-                conflicts.append(script)
+                conflicts.append(entry)
             }
         }
         var firstByID: [String: InstalledService] = [:]
@@ -44,7 +54,7 @@ public struct ServicePlan {
         }
         let wantedIDs = Set(wanted.map(\.id))
         add = wanted.filter { firstByID[$0.id] == nil }
-        refresh = wanted.compactMap { script in firstByID[script.id].map { Refresh(script: script, installed: $0) } }
+        refresh = wanted.compactMap { entry in firstByID[entry.id].map { Refresh(entry: entry, installed: $0) } }
         remove = installed.filter { !wantedIDs.contains($0.id) } + extras.filter { wantedIDs.contains($0.id) }
         self.conflicts = conflicts
     }
@@ -62,10 +72,11 @@ public struct ServicePlan {
     /// `same @name in a.sh, b.sh; only a.sh is registered`, or nil.
     public var problem: String? {
         guard let first = conflicts.first else { return nil }
-        let winnerName = ServiceWorkflow(script: first).bundleName.lowercased()
-        let all = add + refresh.map(\.script)
-        let winner = all.first { ServiceWorkflow(script: $0).bundleName.lowercased() == winnerName }
-        let files = ([winner].compactMap { $0 } + conflicts).map(\.url.lastPathComponent)
-        return "same @name in \(files.joined(separator: ", ")); only \(winner?.url.lastPathComponent ?? "the first") is registered"
+        let winnerName = ServiceWorkflow(entry: first).bundleName.lowercased()
+        let all = add + refresh.map(\.entry)
+        let winner = all.first { ServiceWorkflow(entry: $0).bundleName.lowercased() == winnerName }
+        let file = { (e: ServiceEntry) in (e.path as NSString).lastPathComponent }
+        let files = ([winner].compactMap { $0 } + conflicts).map(file)
+        return "same @name in \(files.joined(separator: ", ")); only \(winner.map(file) ?? "the first") is registered"
     }
 }

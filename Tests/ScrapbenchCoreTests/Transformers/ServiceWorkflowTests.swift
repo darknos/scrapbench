@@ -3,21 +3,21 @@ import Testing
 @testable import ScrapbenchCore
 
 @Suite struct ServiceWorkflowTests {
-    func script(name: String = "Improve text", path: String = "/Users/me/Transformers/improve-text.sh") -> ScriptTransformer {
-        ScriptTransformer(header: ScriptHeader(name: name, service: true), url: URL(fileURLWithPath: path))
+    func script(name: String = "Improve text", path: String = "/Users/me/Transformers/improve-text.sh") -> ServiceEntry {
+        ScriptTransformer(header: ScriptHeader(name: name, service: true), url: URL(fileURLWithPath: path)).serviceEntry
     }
 
     @Test func titleAndBundleName() {
-        let w = ServiceWorkflow(script: script())
+        let w = ServiceWorkflow(entry: script())
         #expect(w.title == "Scrapbench: Improve text")
         #expect(w.bundleName == "Scrapbench - Improve text.workflow")
-        let odd = ServiceWorkflow(script: script(name: "AI: fix/improve"))
+        let odd = ServiceWorkflow(entry: script(name: "AI: fix/improve"))
         #expect(odd.title == "Scrapbench: AI: fix/improve")
         #expect(odd.bundleName == "Scrapbench - AI- fix-improve.workflow")
     }
 
     @Test func commandQuotesThePath() {
-        let w = ServiceWorkflow(script: script(path: "/Users/me/Application Support/it's.sh"))
+        let w = ServiceWorkflow(entry: script(path: "/Users/me/Application Support/it's.sh"))
         let lines = w.command.split(separator: "\n").map(String.init)
         #expect(lines.first?.hasPrefix("export PATH=") == true)
         #expect(lines.contains("export LANG=en_US.UTF-8"))
@@ -25,7 +25,7 @@ import Testing
     }
 
     @Test func infoPlistKeys() throws {
-        let w = ServiceWorkflow(script: script())
+        let w = ServiceWorkflow(entry: script())
         let plist = w.infoPlist
         let services = try #require(plist["NSServices"] as? [[String: Any]])
         #expect(services.count == 1)
@@ -39,7 +39,7 @@ import Testing
     }
 
     @Test func documentHasOneRunShellScriptAction() throws {
-        let w = ServiceWorkflow(script: script())
+        let w = ServiceWorkflow(entry: script())
         let doc = w.document
         let actions = try #require(doc["actions"] as? [[String: Any]])
         #expect(actions.count == 1)
@@ -55,8 +55,25 @@ import Testing
     }
 
     @Test func bothSerialize() throws {
-        let w = ServiceWorkflow(script: script())
+        let w = ServiceWorkflow(entry: script())
         _ = try PropertyListSerialization.data(fromPropertyList: w.infoPlist, format: .xml, options: 0)
         _ = try PropertyListSerialization.data(fromPropertyList: w.document, format: .xml, options: 0)
+    }
+
+    @Test func promptEntryRunsTheApp() {
+        let p = PromptTransformer(header: ScriptHeader(name: "Improve text", service: true), body: "x",
+                                  url: URL(fileURLWithPath: "/t/improve-text.prompt"))
+        let e = p.serviceEntry(executable: "/Applications/Scrap's.app/Contents/MacOS/Scrapbench")
+        #expect(e.id == "prompt.improve-text")
+        #expect(e.path == "/t/improve-text.prompt")
+        #expect(e.command == "export LANG=en_US.UTF-8\nexec '/Applications/Scrap'\\''s.app/Contents/MacOS/Scrapbench' --transform 'prompt.improve-text'")
+        #expect(ServiceWorkflow(entry: e).infoPlist[ServiceWorkflow.scriptIDKey] as? String == "prompt.improve-text")
+    }
+
+    @Test func promptEntryQuotesTheID() {
+        let p = PromptTransformer(header: ScriptHeader(name: "Fix", service: true), body: "x",
+                                  url: URL(fileURLWithPath: "/t/Fix my $text.prompt"))
+        let e = p.serviceEntry(executable: "/A/Scrapbench")
+        #expect(e.command.hasSuffix("exec '/A/Scrapbench' --transform 'prompt.Fix my $text'"))
     }
 }

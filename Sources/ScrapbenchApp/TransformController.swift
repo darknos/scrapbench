@@ -2,8 +2,8 @@ import AppKit
 import ScrapbenchCore
 
 /// Runs transformers on the editor's target text and reports problems in the banner.
-/// Built-ins apply at once; script transformers run through `ScriptRunner`
-/// and apply when the result arrives.
+/// Built-ins apply at once; scripts run through `ScriptRunner` and prompts
+/// through `PromptRunner`, and apply when the result arrives.
 final class TransformController {
     static let lastKey = "lastTransformer"
 
@@ -11,9 +11,9 @@ final class TransformController {
     private let banner: BannerView
     private let palette: PaletteController
     private let header: HeaderView
-    private var scripts: [ScriptTransformer] = []
+    private var extras: [any Transformer] = []
     private var pending: PendingTransform?
-    private var runner: ScriptRunner?
+    private var runner: TransformRunner?
     private var lastID: String? {
         get { UserDefaults.standard.string(forKey: Self.lastKey) }
         set { UserDefaults.standard.set(newValue, forKey: Self.lastKey) }
@@ -27,8 +27,9 @@ final class TransformController {
     /// The last applied transformer, if it still exists.
     var last: (any Transformer)? {
         guard let lastID else { return nil }
-        if lastID.hasPrefix(ScriptTransformer.idPrefix), scripts.isEmpty { rescan(report: false) }
-        return TransformerRegistry.transformer(id: lastID, extra: scripts)
+        let fromFolder = lastID.hasPrefix(ScriptTransformer.idPrefix) || lastID.hasPrefix(PromptTransformer.idPrefix)
+        if fromFolder, extras.isEmpty { rescan(report: false) }
+        return TransformerRegistry.transformer(id: lastID, extra: extras)
     }
 
     init(editor: EditorTextView, banner: BannerView, palette: PaletteController, header: HeaderView) {
@@ -60,7 +61,7 @@ final class TransformController {
             banner.flash("Nothing to transform")
             return nil
         }
-        return TransformerRegistry.applicable(to: target.text, extra: scripts)
+        return TransformerRegistry.applicable(to: target.text, extra: extras)
     }
 
     func run(_ transformer: any Transformer) {
@@ -70,6 +71,10 @@ final class TransformController {
         }
         if let script = transformer as? ScriptTransformer {
             start(script, range: range, text: text)
+            return
+        }
+        if let prompt = transformer as? PromptTransformer {
+            start(prompt, range: range, text: text)
             return
         }
         do {
@@ -99,7 +104,7 @@ final class TransformController {
         pending?.shift(edited: range, delta: (replacement as NSString).length - range.length)
     }
 
-    /// Quit: the script is terminated and its result not awaited.
+    /// Quit: the script is terminated or the request cancelled; the result is not awaited.
     func cancelRunning() {
         runner?.cancel()
         runner = nil
@@ -107,14 +112,15 @@ final class TransformController {
         header.runningName = nil
     }
 
-    // MARK: - Scripts
+    // MARK: - Scripts and prompts
 
     private func rescan(report: Bool) {
-        let (found, problems) = ScriptRegistry.scan(directory: Settings.transformersDirectory)
-        scripts = found
+        let scan = ScriptRegistry.scan(directory: Settings.transformersDirectory, scripts: !Distribution.isSandboxed)
+        extras = scan.transformers
+        let problems = scan.problems
         guard report, !problems.isEmpty else { return }
         let list = problems.map { "\($0.file) (\($0.reason))" }.joined(separator: ", ")
-        banner.flash("\(problems.count) \(problems.count == 1 ? "script" : "scripts") skipped: \(list)")
+        banner.flash("\(problems.count) \(problems.count == 1 ? "transformer" : "transformers") skipped: \(list)")
     }
 
     private func start(_ script: ScriptTransformer, range: NSRange, text: String) {
@@ -125,6 +131,30 @@ final class TransformController {
         pending = PendingTransform(id: script.id, name: script.name, range: range, text: text)
         header.runningName = script.name
         let runner = ScriptRunner(script: script, input: text, scrapFile: Settings.shared.fileURL)
+        self.runner = runner
+        runner.start { [weak self] result in
+            guard let self, self.runner === runner else { return }
+            self.finish(result)
+        }
+    }
+
+    private func start(_ prompt: PromptTransformer, range: NSRange, text: String) {
+        if let pending {
+            banner.flash("\(pending.name) is running")
+            return
+        }
+        let endpoint: PromptEndpoint
+        switch PromptEndpoint.resolve(for: prompt, settings: Settings.shared.aiSettings(for: prompt.provider)) {
+        case .failure(let error):
+            banner.flash("\(prompt.name): \(error.message)")
+            return
+        case .success(let resolved):
+            endpoint = resolved
+        }
+        pending = PendingTransform(id: prompt.id, name: prompt.name, range: range, text: text)
+        header.runningName = prompt.name
+        let request = PromptRequest.build(endpoint: endpoint, systemPrompt: prompt.systemPrompt, input: text)
+        let runner = PromptRunner(request: request, provider: endpoint.provider, timeout: prompt.timeout)
         self.runner = runner
         runner.start { [weak self] result in
             guard let self, self.runner === runner else { return }

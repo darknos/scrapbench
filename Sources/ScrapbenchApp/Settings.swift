@@ -1,6 +1,7 @@
 import AppKit
 import Combine
 import KeyboardShortcuts
+import ScrapbenchCore
 
 extension KeyboardShortcuts.Name {
     static let togglePanel = Self("togglePanel", default: .init(.space, modifiers: [.control, .option]))
@@ -57,6 +58,10 @@ final class Settings: ObservableObject {
     @Published var wordWrap: Bool { didSet { defaults.set(wordWrap, forKey: "wordWrap") } }
     @Published var stayOnTop: Bool { didSet { defaults.set(stayOnTop, forKey: "stayOnTop") } }
     @Published var indentUnit: IndentUnit { didSet { defaults.set(indentUnit.rawValue, forKey: "indentUnit") } }
+    @Published var aiProvider: PromptProvider { didSet { defaults.set(aiProvider.rawValue, forKey: "aiProvider") } }
+    @Published var aiAnthropicModel: String { didSet { defaults.set(aiAnthropicModel, forKey: "aiAnthropicModel") } }
+    @Published var aiOtherModel: String { didSet { defaults.set(aiOtherModel, forKey: "aiOtherModel") } }
+    @Published var aiOtherBaseURL: String { didSet { defaults.set(aiOtherBaseURL, forKey: "aiOtherBaseURL") } }
     @Published var appearance: Appearance {
         didSet {
             defaults.set(appearance.rawValue, forKey: "appearance")
@@ -75,6 +80,29 @@ final class Settings: ObservableObject {
         wordWrap = defaults.object(forKey: "wordWrap") as? Bool ?? true
         stayOnTop = defaults.object(forKey: "stayOnTop") as? Bool ?? true
         indentUnit = defaults.string(forKey: "indentUnit").flatMap(IndentUnit.init) ?? .twoSpaces
+        aiProvider = defaults.string(forKey: "aiProvider").flatMap(PromptProvider.init) ?? .anthropic
+        aiAnthropicModel = defaults.string(forKey: "aiAnthropicModel") ?? AISettings.defaultAnthropicModel
+        aiOtherModel = defaults.string(forKey: "aiOtherModel") ?? ""
+        aiOtherBaseURL = defaults.string(forKey: "aiOtherBaseURL") ?? AISettings.defaultOtherBaseURL
+    }
+
+    static let anthropicKeyAccount = "anthropic"
+    static let otherKeyAccount = "other"
+
+    /// Not in the UI: a hook for pointing the Anthropic path at a mock server.
+    var aiAnthropicBaseURL: String {
+        defaults.string(forKey: "aiAnthropicBaseURL") ?? AISettings.defaultAnthropicBaseURL
+    }
+
+    /// Reads only the key of the provider that will be used (`override`,
+    /// else the one in Settings): every Keychain read can raise an access
+    /// dialog, and the other provider's key is not needed.
+    func aiSettings(for override: PromptProvider? = nil) -> AISettings {
+        let provider = override ?? aiProvider
+        return AISettings(provider: aiProvider, anthropicModel: aiAnthropicModel, anthropicBaseURL: aiAnthropicBaseURL,
+                          anthropicKey: provider == .anthropic ? Keychain.read(account: Self.anthropicKeyAccount) : nil,
+                          otherModel: aiOtherModel, otherBaseURL: aiOtherBaseURL,
+                          otherKey: provider == .other ? Keychain.read(account: Self.otherKeyAccount) : nil)
     }
 
     func applyAppearance() {

@@ -12,6 +12,7 @@ public struct TransformerGroup: Hashable, Sendable {
     public static let time = TransformerGroup("Time")
     public static let math = TransformerGroup("Math")
     public static let scripts = TransformerGroup("Scripts")
+    public static let ai = TransformerGroup("AI")
 }
 
 /// A pure text → text operation offered in the command palette.

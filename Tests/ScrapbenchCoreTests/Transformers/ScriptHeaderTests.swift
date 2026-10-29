@@ -41,8 +41,37 @@ import Testing
         #expect((try? parse("@name Not a comment\n# @name A\n# @colour red\n").get())?.name == "A")
     }
 
+    @Test func crlfHeaderLines() {
+        let h = try? parse("#!/bin/sh\r\n# @name A\r\n# @timeout 5\r\n").get()
+        #expect(h?.name == "A")
+        #expect(h?.timeout == 5)
+    }
+
     @Test func firstOccurrenceWins() {
         #expect((try? parse("# @name A\n# @name B\n").get())?.name == "A")
+    }
+
+    @Test func promptKeys() {
+        let h = try? parse("# @name A\n# @model claude-sonnet-5-5\n# @provider other\n# @effort high\n").get()
+        #expect(h?.model == "claude-sonnet-5-5")
+        #expect(h?.provider == .other)
+        #expect(h?.effort == .high)
+    }
+
+    @Test func promptKeysDefaultToNil() {
+        let h = try? parse("# @name A\n").get()
+        #expect(h?.model == nil && h?.provider == nil && h?.effort == nil)
+    }
+
+    @Test func badProviderAndEffortAreProblems() {
+        #expect(parse("# @name A\n# @provider openai\n") == .failure(ScriptProblem(file: "x.sh", reason: "bad @provider")))
+        #expect(parse("# @name A\n# @effort turbo\n") == .failure(ScriptProblem(file: "x.sh", reason: "bad @effort")))
+    }
+
+    @Test func defaultTimeoutAndGroupParameters() {
+        let h = try? ScriptHeader.parse("# @name A\n", file: "x", defaultTimeout: 60, defaultGroup: .ai).get()
+        #expect(h?.timeout == 60)
+        #expect(h?.group == .ai)
     }
 }
 

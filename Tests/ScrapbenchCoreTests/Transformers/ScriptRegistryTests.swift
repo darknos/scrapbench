@@ -20,7 +20,8 @@ import Testing
     @Test func executableFilesWithHeadersBecomeTransformers() throws {
         defer { cleanup() }
         try write("improve.sh", "#!/bin/sh\n# @name Improve text\n# @group AI\ncat\n")
-        let (scripts, problems) = ScriptRegistry.scan(directory: dir)
+        let scan = ScriptRegistry.scan(directory: dir)
+        let (scripts, problems) = (scan.scripts, scan.problems)
         #expect(problems.isEmpty)
         #expect(scripts.count == 1)
         #expect(scripts.first?.id == "script.improve")
@@ -35,7 +36,8 @@ import Testing
     @Test func nonExecutableIsReported() throws {
         defer { cleanup() }
         try write("x.py", "# @name X\n", executable: false)
-        let (scripts, problems) = ScriptRegistry.scan(directory: dir)
+        let scan = ScriptRegistry.scan(directory: dir)
+        let (scripts, problems) = (scan.scripts, scan.problems)
         #expect(scripts.isEmpty)
         #expect(problems == [ScriptProblem(file: "x.py", reason: "not executable")])
     }
@@ -52,7 +54,8 @@ import Testing
         let sub = dir.appendingPathComponent("sub")
         try FileManager.default.createDirectory(at: sub, withIntermediateDirectories: true)
         try write("inner.sh", "# @name Inner\n", in: sub)
-        let (scripts, problems) = ScriptRegistry.scan(directory: dir)
+        let scan = ScriptRegistry.scan(directory: dir)
+        let (scripts, problems) = (scan.scripts, scan.problems)
         #expect(scripts.isEmpty)
         #expect(problems.isEmpty)
     }
@@ -61,7 +64,8 @@ import Testing
         defer { cleanup() }
         try write("a.py", "# @name Py\n")
         try write("a.sh", "# @name Sh\n")
-        let (scripts, problems) = ScriptRegistry.scan(directory: dir)
+        let scan = ScriptRegistry.scan(directory: dir)
+        let (scripts, problems) = (scan.scripts, scan.problems)
         #expect(scripts.map(\.name) == ["Py"])
         #expect(problems == [ScriptProblem(file: "a.sh", reason: "duplicate id")])
     }
@@ -71,7 +75,7 @@ import Testing
         try write("z.sh", "# @name Z\n# @group AI\n")
         try write("b.sh", "# @name B\n# @group Text\n")
         try write("a.sh", "# @name A\n")
-        #expect(ScriptRegistry.scan(directory: dir).transformers.map(\.id) == ["script.z", "script.a", "script.b"])
+        #expect(ScriptRegistry.scan(directory: dir).scripts.map(\.id) == ["script.z", "script.a", "script.b"])
     }
 
     @Test func symlinkToAScriptIsListedUnderTheLinkName() throws {
@@ -81,7 +85,8 @@ import Testing
         let links = dir.appendingPathComponent("links")
         try FileManager.default.createDirectory(at: links, withIntermediateDirectories: true)
         try FileManager.default.createSymbolicLink(at: links.appendingPathComponent("improve.sh"), withDestinationURL: outside)
-        let (scripts, problems) = ScriptRegistry.scan(directory: links)
+        let scan = ScriptRegistry.scan(directory: links)
+        let (scripts, problems) = (scan.scripts, scan.problems)
         #expect(problems.isEmpty)
         #expect(scripts.map(\.id) == ["script.improve"])
         #expect(scripts.first?.url.lastPathComponent == "improve.sh")
@@ -89,8 +94,50 @@ import Testing
 
     @Test func missingDirectoryYieldsNothing() {
         cleanup()
-        let (scripts, problems) = ScriptRegistry.scan(directory: dir.appendingPathComponent("nope"))
+        let scan = ScriptRegistry.scan(directory: dir.appendingPathComponent("nope"))
+        let (scripts, problems) = (scan.scripts, scan.problems)
         #expect(scripts.isEmpty)
         #expect(problems.isEmpty)
+    }
+
+    @Test func promptFilesNeedNoExecutableBit() throws {
+        defer { cleanup() }
+        try write("improve.prompt", "# @name Improve\nFix.\n", executable: false)
+        let scan = ScriptRegistry.scan(directory: dir)
+        #expect(scan.problems.isEmpty)
+        #expect(scan.prompts.map(\.id) == ["prompt.improve"])
+    }
+
+    @Test func promptAndScriptShareAStem() throws {
+        defer { cleanup() }
+        try write("improve.sh", "#!/bin/sh\n# @name Improve script\n# @group AI\ncat\n")
+        try write("improve.prompt", "# @name Improve prompt\nFix.\n", executable: false)
+        let scan = ScriptRegistry.scan(directory: dir)
+        #expect(scan.problems.isEmpty)
+        #expect(scan.transformers.map(\.id) == ["prompt.improve", "script.improve"])
+    }
+
+    @Test func transformersAreMergedByGroupThenFileName() throws {
+        defer { cleanup() }
+        try write("z.prompt", "# @name Z\nx\n", executable: false)
+        try write("b.sh", "# @name B\n# @group AI\n")
+        try write("a.sh", "# @name A\n")
+        #expect(ScriptRegistry.scan(directory: dir).transformers.map(\.id) == ["script.b", "prompt.z", "script.a"])
+    }
+
+    @Test func scriptsCanBeSwitchedOff() throws {
+        defer { cleanup() }
+        try write("x.sh", "#!/bin/sh\n# @name X\ncat\n")
+        try write("y.py", "# @name Y\n", executable: false)
+        try write("p.prompt", "# @name P\nx\n", executable: false)
+        let scan = ScriptRegistry.scan(directory: dir, scripts: false)
+        #expect(scan.scripts.isEmpty && scan.problems.isEmpty)
+        #expect(scan.prompts.map(\.id) == ["prompt.p"])
+    }
+
+    @Test func promptProblemsAreReported() throws {
+        defer { cleanup() }
+        try write("e.prompt", "# @name E\n", executable: false)
+        #expect(ScriptRegistry.scan(directory: dir).problems == [ScriptProblem(file: "e.prompt", reason: "empty prompt")])
     }
 }

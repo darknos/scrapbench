@@ -40,6 +40,15 @@ is verified by running the app.
 
 - Script transformers live in `~/Library/Application Support/Scrapbench/Transformers/`; put a
   few throwaway scripts there (`sleep 5; tr a-z A-Z`, `exit 3`) to check the asynchronous path.
+- Prompt transformers without a real key: `python3 -I Scripts/mock-ai-server.py` speaks both
+  wire formats (behaviour picked by `@model`: `echo`, `slow`, `refuse`, `empty`, `long`, `rate`,
+  `html`; key `bad` → 401). Point the Anthropic path at it with
+  `defaults write org.nosenko.Scrapbench aiAnthropicBaseURL http://localhost:8089` (a hidden
+  hook, delete it afterwards). Store a test key through the app, not the `security` CLI:
+  `echo k | build/Scrapbench.app/Contents/MacOS/Scrapbench --set-key anthropic`; an item
+  another binary created makes the app block on a Keychain access dialog. Each scenario can
+  run without the UI: `echo hi | …/Scrapbench --transform prompt.<stem>` prints the answer or
+  `<name>: <error>` on stderr.
 
 ## Architecture
 
@@ -67,8 +76,16 @@ Two targets with different language modes (see `Package.swift`):
     `apply` throws, the app runs the file), `PendingTransform` keeps the target range in step
     with edits while a script runs. Spec: `docs/specs/2026-10-28-script-transformers-design.md`.
     `Transformers/Scripts/Services/`: `ServiceWorkflow` builds the two plists of an Automator
-    workflow bundle for a `@service` script, `ServicePlan` diffs scripts against installed
+    workflow bundle for a `ServiceEntry` (a `@service` script runs directly, a `@service` prompt
+    runs `Scrapbench --transform <id>`), `ServicePlan` diffs entries against installed
     bundles (add / refresh / remove). Spec: `docs/specs/2026-10-28-service-transformers-design.md`.
+    `Transformers/Prompts/`: `PromptFile` splits a `.prompt` file into the header and the system
+    prompt, `PromptTransformer` is the palette item (`prompt.<stem>`, listed by
+    `ScriptRegistry.scan` in `ScanResult.prompts`, executable bit not needed),
+    `PromptEndpoint.resolve` applies the header overrides to `AISettings` and reports what is
+    missing, `PromptRequest.build` and `PromptResponse.parse` are the two wire formats
+    (Anthropic Messages, Chat Completions) as pure functions over `URLRequest` / `Data`.
+    Spec: `docs/specs/2026-10-29-prompt-transformers-design.md`.
   - `Highlighting/` — `SyntaxHighlighter` returns `Token`s (UTF-16 `NSRange` + `TokenKind`) for a
     range. `MarkdownHighlighter` runs Markdown-lite rules outside fenced blocks and delegates
     fenced blocks to a `CodeGrammar` picked by language (`Grammars/`). `CodeBlockMap` locates
@@ -84,10 +101,16 @@ Two targets with different language modes (see `Package.swift`):
     place), applies a transformer through `EditorTextView.replace` (one undo step) and reports
     `TransformError` with `BannerView.flash` (auto-hides, unlike save banners). A
     `ScriptTransformer` goes to `ScriptRunner` (`Process` with a timeout, pipes read through
-    `readabilityHandler`, completion on the main thread) and the result is applied when it
-    arrives: in place if `PendingTransform` says the target is intact, else appended as a new
-    scrap via `SessionController.appendResult`. The app never modifies script files (no
-    `chmod`). The palette is a
+    `readabilityHandler`, completion on the main thread), a `PromptTransformer` to `PromptRunner`
+    (`URLSession`, same completion contract; both are `TransformRunner`s) and the result is
+    applied when it arrives: in place if `PendingTransform` says the target is intact, else
+    appended as a new scrap via `SessionController.appendResult`. The app never modifies script
+    files (no `chmod`). API keys live only in the Keychain (`Keychain`, service
+    `org.nosenko.Scrapbench`, accounts `anthropic` / `other`); they are never written to
+    `UserDefaults` or the log. `Distribution.isSandboxed` (the `APP_SANDBOX_CONTAINER_ID`
+    environment variable) hides scripts, Services and the headless modes in the App Store
+    build. `main.swift` handles `--transform <id>` and `--set-key <account>` before
+    `NSApplication` exists (`HeadlessTransform`). The palette is a
     `PaletteView` inside the panel driven by `PaletteController` (rows come from Core's
     `PaletteRows`: `Recent` first, last-used wins ties); `BenchPanel.sendEvent` closes it on a
     click outside, `resignKey` on focus loss. `HeaderView` holds the file name, save status and

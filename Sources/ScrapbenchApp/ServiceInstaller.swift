@@ -30,14 +30,16 @@ final class ServiceInstaller {
     }
 
     func plan() -> ServicePlan {
-        let scripts = ScriptRegistry.scan(directory: Settings.transformersDirectory).transformers
-        return ServicePlan(scripts: scripts, installed: installed())
+        let scan = ScriptRegistry.scan(directory: Settings.transformersDirectory)
+        let entries = ServicePlan.serviceEntries(scripts: scan.scripts, prompts: scan.prompts,
+                                                 executable: Bundle.main.executableURL?.path ?? CommandLine.arguments[0])
+        return ServicePlan(entries: entries, installed: installed())
     }
 
     func register(_ plan: ServicePlan) throws {
         defer { NSUpdateDynamicServices() }
         try fileManager.createDirectory(at: Self.servicesDirectory, withIntermediateDirectories: true)
-        let workflows = (plan.add + plan.refresh.map(\.script)).map(ServiceWorkflow.init)
+        let workflows = (plan.add + plan.refresh.map(\.entry)).map(ServiceWorkflow.init)
         for workflow in workflows {
             try write(workflow)
         }
