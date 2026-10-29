@@ -8,7 +8,7 @@ struct SettingsView: View {
     @ObservedObject var settings = Settings.shared
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     @State private var loginError: String?
-    @State private var servicePlan = ServicePlan(scripts: [], installed: [])
+    @State private var servicePlan = ServicePlan(entries: [], installed: [])
     @State private var installedServices = 0
     @State private var serviceError: String?
     private let installer = ServiceInstaller()

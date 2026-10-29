@@ -1,6 +1,6 @@
 import Foundation
 
-/// The Automator workflow bundle that offers a script transformer as a
+/// The Automator workflow bundle that offers a transformer as a
 /// macOS Service. Two property lists, `Contents/Info.plist` and
 /// `Contents/document.wflow`, shaped like the ones Automator writes for a
 /// "replace selected text" service with one Run Shell Script action.
@@ -11,31 +11,21 @@ public struct ServiceWorkflow {
     static let titlePrefix = "Scrapbench: "
     static let bundlePrefix = "Scrapbench - "
 
-    public let script: ScriptTransformer
+    public let entry: ServiceEntry
 
-    public init(script: ScriptTransformer) {
-        self.script = script
+    public init(entry: ServiceEntry) {
+        self.entry = entry
     }
 
-    public var title: String { Self.titlePrefix + script.name }
+    public var title: String { Self.titlePrefix + entry.name }
 
     /// Finder shows `:` in a file name as `/`, so both become `-`.
     public var bundleName: String {
-        let safe = script.name.map { $0 == "/" || $0 == ":" ? "-" : String($0) }.joined()
+        let safe = entry.name.map { $0 == "/" || $0 == ":" ? "-" : String($0) }.joined()
         return Self.bundlePrefix + safe + "." + Self.bundleExtension
     }
 
-    public var command: String {
-        """
-        export PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
-        export LANG=en_US.UTF-8
-        exec \(Self.shellQuoted(script.url.path))
-        """
-    }
-
-    public static func shellQuoted(_ s: String) -> String {
-        "'" + s.replacingOccurrences(of: "'", with: "'\\''") + "'"
-    }
+    public var command: String { entry.command }
 
     public var infoPlist: [String: Any] {
         [
@@ -47,8 +37,8 @@ public struct ServiceWorkflow {
                 "NSReturnTypes": ["public.utf8-plain-text"],
                 "NSSendTypes": ["public.utf8-plain-text"],
             ]],
-            Self.scriptIDKey: script.id,
-            Self.scriptPathKey: script.url.path,
+            Self.scriptIDKey: entry.id,
+            Self.scriptPathKey: entry.path,
         ]
     }
 
